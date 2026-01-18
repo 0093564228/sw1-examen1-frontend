@@ -1,13 +1,13 @@
 // Editor de diagramas UML
-import axios from 'axios';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import AssociationRelation from '../components/AssociationRelation';
-import ClassComponent from '../components/ClassComponent';
-import AIAssistant from '../components/AIAssistant';
-import TourGuide from '../components/TourGuide';
-import io from 'socket.io-client';
-import API_CONFIG from '../services/apiConfig';
+import axios from "axios";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import AssociationRelation from "../components/AssociationRelation";
+import ClassComponent from "../components/ClassComponent";
+import AIAssistant from "../components/AIAssistant";
+import TourGuide from "../components/TourGuide";
+import io from "socket.io-client";
+import API_CONFIG from "../services/apiConfig";
 import {
   EditorContainer,
   Header,
@@ -21,32 +21,32 @@ import {
   Modal,
   ModalContent,
   CollaborationPanel,
-} from './EditorDiagrama.styles';
-import { 
-  Plus, 
-  Link, 
-  CircleDot, 
-  Circle, 
-  ArrowUp, 
-  ArrowRightLeft, 
-  Code, 
-  FileDown, 
-  Download, 
-  FileUp, 
-  Bot, 
-  Settings, 
-  ArrowLeft, 
-  Save, 
-  Edit, 
-  Users, 
-  Key, 
-  Copy, 
-  X, 
+} from "./EditorDiagrama.styles";
+import {
+  Plus,
+  Link,
+  CircleDot,
+  Circle,
+  ArrowUp,
+  ArrowRightLeft,
+  Code,
+  FileDown,
+  Download,
+  FileUp,
+  Bot,
+  Settings,
+  ArrowLeft,
+  Save,
+  Edit,
+  Users,
+  Key,
+  Copy,
+  X,
   RefreshCw,
   AlertCircle,
   Wifi,
-  WifiOff
-} from 'lucide-react';
+  WifiOff,
+} from "lucide-react";
 
 // Estilos CSS para animaciones
 const globalStyles = `
@@ -73,11 +73,11 @@ const globalStyles = `
 `;
 
 // Crear un elemento style para los estilos globales
-if (typeof document !== 'undefined') {
-  const styleElement = document.createElement('style');
+if (typeof document !== "undefined") {
+  const styleElement = document.createElement("style");
   styleElement.textContent = globalStyles;
   document.head.appendChild(styleElement);
-};
+}
 
 const EditorDiagrama = () => {
   const { id } = useParams();
@@ -92,7 +92,7 @@ const EditorDiagrama = () => {
   // Estados principales
   const [classes, setClasses] = useState([]);
   const [relations, setRelations] = useState([]);
-  const [titulo, setTitulo] = useState('');
+  const [titulo, setTitulo] = useState("");
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -105,7 +105,8 @@ const EditorDiagrama = () => {
     const result = [];
     for (const u of users) {
       // Priorizar userId; si falta, usar socketId; como último recurso, id
-      const key = u?.userId || u?.socketId || u?.id || u?.email || u?.username || u?.name;
+      const key =
+        u?.userId || u?.socketId || u?.id || u?.email || u?.username || u?.name;
       if (!key) continue;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -119,15 +120,15 @@ const EditorDiagrama = () => {
   const [isCreatingRelation, setIsCreatingRelation] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [relationType, setRelationType] = useState('Asociación');
-  
+  const [relationType, setRelationType] = useState("Asociación");
+
   // Estados para navegación del canvas
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
   // Estados para invitaciones y usuarios
-  const [codigoInvitacion, setCodigoInvitacion] = useState('');
+  const [codigoInvitacion, setCodigoInvitacion] = useState("");
   const [usuarios, setUsuarios] = useState([]);
 
   // Estados para modales y exportación
@@ -139,7 +140,7 @@ const EditorDiagrama = () => {
   const [zipDownloadUrl, setZipDownloadUrl] = useState(null);
   const [showTitleModal, setShowTitleModal] = useState(false);
   const [showBackendModal, setShowBackendModal] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
+  const [newTitle, setNewTitle] = useState("");
 
   // Estado para el asistente IA - UNIFICADO
   const [chatAIVisible, setChatAIVisible] = useState(false);
@@ -170,10 +171,11 @@ const EditorDiagrama = () => {
 
   // Verificar autenticación
   useEffect(() => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
     if (!token) {
-      console.log('No hay token de autenticación, redirigiendo al login');
-      navigate('/');
+      console.log("No hay token de autenticación, redirigiendo al login");
+      navigate("/");
     }
   }, [navigate]);
 
@@ -181,69 +183,74 @@ const EditorDiagrama = () => {
   useEffect(() => {
     socketRef.current = io(API_CONFIG.WS_URL, {
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: ["websocket", "polling"],
     });
 
-    socketRef.current.on('connect', () => {
-      console.log('Conectado al servidor');
+    socketRef.current.on("connect", () => {
+      console.log("Conectado al servidor");
       setIsConnected(true);
-      socketRef.current.emit('join-room', id);
+      socketRef.current.emit("join-room", id);
       // Compatibilidad: algunos servidores usan 'join-diagram'
-      socketRef.current.emit('join-diagram', { roomId: id });
+      socketRef.current.emit("join-diagram", { roomId: id });
       // Solicitar lista de usuarios con callback (contrato del backend)
-      socketRef.current.emit('get-online-users', id, (users) => {
-        console.log('Callback get-online-users:', users);
+      socketRef.current.emit("get-online-users", id, (users) => {
+        console.log("Callback get-online-users:", users);
         setOnlineUsers(normalizeUsers(users || []));
       });
       // Compatibilidad adicional (si el backend soporta otros canales)
-      socketRef.current.emit('request-users', { roomId: id });
-      socketRef.current.emit('who-is-online', { roomId: id });
+      socketRef.current.emit("request-users", { roomId: id });
+      socketRef.current.emit("who-is-online", { roomId: id });
     });
 
-    socketRef.current.on('disconnect', () => {
-      console.log('Desconectado del servidor');
+    socketRef.current.on("disconnect", () => {
+      console.log("Desconectado del servidor");
       setIsConnected(false);
     });
 
-    socketRef.current.on('user-joined', (user) => {
-      console.log('Usuario conectado:', user);
-      setOnlineUsers(prev => normalizeUsers([...(prev || []), user]));
+    socketRef.current.on("user-joined", (user) => {
+      console.log("Usuario conectado:", user);
+      setOnlineUsers((prev) => normalizeUsers([...(prev || []), user]));
     });
 
-    socketRef.current.on('user-left', (payload) => {
+    socketRef.current.on("user-left", (payload) => {
       // El backend puede enviar userId o socketId o un objeto
-      const leftKey = typeof payload === 'string' ? payload : (payload?.userId || payload?.socketId || payload?.id);
-      console.log('Usuario desconectado:', payload);
-      setOnlineUsers(prev => (prev || []).filter(user => {
-        const key = user?.userId || user?.socketId || user?.id;
-        return key !== leftKey;
-      }));
+      const leftKey =
+        typeof payload === "string"
+          ? payload
+          : payload?.userId || payload?.socketId || payload?.id;
+      console.log("Usuario desconectado:", payload);
+      setOnlineUsers((prev) =>
+        (prev || []).filter((user) => {
+          const key = user?.userId || user?.socketId || user?.id;
+          return key !== leftKey;
+        })
+      );
     });
 
-    socketRef.current.on('users-updated', (users) => {
-      console.log('Usuarios en línea actualizados:', users);
+    socketRef.current.on("users-updated", (users) => {
+      console.log("Usuarios en línea actualizados:", users);
       setOnlineUsers(normalizeUsers(users));
     });
 
     // Escuchar eventos alternativos de presencia si el backend los usa
-    socketRef.current.on('presence-update', (users) => {
-      console.log('Presence update:', users);
+    socketRef.current.on("presence-update", (users) => {
+      console.log("Presence update:", users);
       setOnlineUsers(normalizeUsers(users || []));
     });
-    socketRef.current.on('online-users', (users) => {
-      console.log('Online users:', users);
+    socketRef.current.on("online-users", (users) => {
+      console.log("Online users:", users);
       setOnlineUsers(normalizeUsers(users || []));
     });
-    socketRef.current.on('room-users', (users) => {
-      console.log('Room users:', users);
+    socketRef.current.on("room-users", (users) => {
+      console.log("Room users:", users);
       setOnlineUsers(normalizeUsers(users || []));
     });
-    socketRef.current.on('users-in-room', (users) => {
-      console.log('Users in room:', users);
+    socketRef.current.on("users-in-room", (users) => {
+      console.log("Users in room:", users);
       setOnlineUsers(normalizeUsers(users || []));
     });
-    socketRef.current.on('participants', (users) => {
-      console.log('Participants:', users);
+    socketRef.current.on("participants", (users) => {
+      console.log("Participants:", users);
       setOnlineUsers(normalizeUsers(users || []));
     });
 
@@ -259,244 +266,263 @@ const EditorDiagrama = () => {
     if (!socketRef.current) return;
 
     const socket = socketRef.current;
-    
+
     // Limpiar listeners anteriores
     socket.removeAllListeners();
-    
+
     // Re-emitir join-room
-    socket.emit('join-room', id);
-    
+    socket.emit("join-room", id);
+
     // Escuchar cuando el agente IA actualiza el diagrama
-    socket.on('agent-update', (data) => {
-      console.log('🤖 Agente actualizó el diagrama:', data);
+    socket.on("agent-update", (data) => {
+      console.log("🤖 Agente actualizó el diagrama:", data);
 
       // Pausar el auto-guardado para evitar conflictos
       setIsAgentUpdating(true);
 
       // Aplicar los cambios del agente al diagrama
-      if (data.type === 'diagram_modified' && data.updatedDiagram) {
-        const { classes: newClasses, relations: newRelations, titulo: newTitulo } = data.updatedDiagram;
-        
+      if (data.type === "diagram_modified" && data.updatedDiagram) {
+        const {
+          classes: newClasses,
+          relations: newRelations,
+          titulo: newTitulo,
+        } = data.updatedDiagram;
+
         // Actualizar las clases, relaciones y título
         if (newClasses) setClasses(newClasses);
         if (newRelations) setRelations(newRelations);
         if (newTitulo) setTitulo(newTitulo);
 
         // Notificar a otros componentes que hubo un cambio
-        window.dispatchEvent(new CustomEvent('agent-update', { detail: data}));
+        window.dispatchEvent(new CustomEvent("agent-update", { detail: data }));
       }
 
       // Re-activar el auto-guardado después de 1 segundo
       setTimeout(() => {
         setIsAgentUpdating(false);
-        console.log('▶️ Auto-guardado reactivado');
+        console.log("▶️ Auto-guardado reactivado");
       }, 1000);
     });
 
     // Listener para aplicar patches de IA directamente
     const handleAIPatchApply = (event) => {
       const { patch } = event.detail;
-      console.log('Procesando cambios de IA:', patch);
-      
+      console.log("Procesando cambios de IA:", patch);
+
       // Verificar si es un objeto con clases y relaciones
       if (patch.classes && patch.relations) {
-        console.log('Aplicando diagrama completo');
-        console.log('Clases:', patch.classes.length);
-        console.log('Relaciones:', patch.relations.length);
-        
+        console.log("Aplicando diagrama completo");
+        console.log("Clases:", patch.classes.length);
+        console.log("Relaciones:", patch.relations.length);
+
         // Actualizar clases
         if (Array.isArray(patch.classes)) {
           setClasses(patch.classes);
         }
-        
+
         // Actualizar relaciones
         if (Array.isArray(patch.relations)) {
           setRelations(patch.relations);
         }
-        
+
         if (patch.titulo) {
           setTitulo(patch.titulo);
         }
 
-        console.log('✅ Cambios aplicados');
+        console.log("✅ Cambios aplicados");
 
         // Guardar en el servidor (solo si no está actualizando el agente)
         try {
-          const hasContent = (Array.isArray(patch.classes) && patch.classes.length > 0) || 
-                            (Array.isArray(patch.relations) && patch.relations.length > 0);
-          
+          const hasContent =
+            (Array.isArray(patch.classes) && patch.classes.length > 0) ||
+            (Array.isArray(patch.relations) && patch.relations.length > 0);
+
           if (hasContent && !isAgentUpdating) {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem("token");
             if (token) {
               const payload = {
                 titulo: patch.titulo || titulo,
                 contenido: {
                   classes: patch.classes,
-                  relations: patch.relations
-                }
+                  relations: patch.relations,
+                },
               };
-              axios.put(API_CONFIG.getUrl(`/api/diagramas/${id}`), payload, {
-                headers: { Authorization: `Bearer ${token}` }
-              }).then(() => {
-                console.log('Diagrama guardado automáticamente');
-              }).catch((e) => {
-                console.warn('Error al guardar:', e?.response?.data || e.message);
-              });
+              axios
+                .put(API_CONFIG.getUrl(`/api/diagramas/${id}`), payload, {
+                  headers: { Authorization: `Bearer ${token}` },
+                })
+                .then(() => {
+                  console.log("Diagrama guardado automáticamente");
+                })
+                .catch((e) => {
+                  console.warn(
+                    "Error al guardar:",
+                    e?.response?.data || e.message
+                  );
+                });
             }
           } else if (isAgentUpdating) {
-            console.log('⏸️ Guardado pausado - agente actualizando');
+            console.log("⏸️ Guardado pausado - agente actualizando");
           }
         } catch (e) {
-          console.warn('Error en guardado automático:', e);
+          console.warn("Error en guardado automático:", e);
         }
       } else if (Array.isArray(patch)) {
         // Es un array de operaciones (agregar, modificar, eliminar)
-        console.log('Aplicando operaciones');
+        console.log("Aplicando operaciones");
         applyAIPatch(patch);
-        
+
         // Guardar después de aplicar (solo si no está actualizando el agente)
         if (!isAgentUpdating) {
           setTimeout(() => {
             try {
               guardarDiagrama();
-              console.log('Diagrama guardado automáticamente');
+              console.log("Diagrama guardado automáticamente");
             } catch (e) {
-              console.warn('Error al guardar:', e);
+              console.warn("Error al guardar:", e);
             }
           }, 600);
         } else {
-          console.log('⏸️ Guardado pausado - agente actualizando');
+          console.log("⏸️ Guardado pausado - agente actualizando");
         }
-      } else if (typeof patch === 'object' && patch !== null) {
+      } else if (typeof patch === "object" && patch !== null) {
         // Es una operación única
-        console.log('Procesando operación única');
+        console.log("Procesando operación única");
         if (patch.type) {
           applyAIPatch([patch]);
-          
+
           // Guardar después de aplicar (solo si no está actualizando el agente)
           if (!isAgentUpdating) {
             setTimeout(() => {
               try {
                 guardarDiagrama();
-                console.log('Diagrama guardado automáticamente');
+                console.log("Diagrama guardado automáticamente");
               } catch (e) {
-                console.warn('Error al guardar:', e);
+                console.warn("Error al guardar:", e);
               }
             }, 600);
           } else {
-            console.log('⏸️ Guardado pausado - agente actualizando');
+            console.log("⏸️ Guardado pausado - agente actualizando");
           }
         } else {
-          console.error('Operación no válida:', patch);
+          console.error("Operación no válida:", patch);
         }
       } else {
-        console.error('Formato de cambios no reconocido:', patch);
+        console.error("Formato de cambios no reconocido:", patch);
       }
     };
 
-    window.addEventListener('ai-patch-apply', handleAIPatchApply);
-    
+    window.addEventListener("ai-patch-apply", handleAIPatchApply);
+
     // Cuando otro usuario mueve una clase
-    socket.on('class-moved', ({ classId, position }) => {
-      setClasses(prevClasses =>
-        prevClasses.map(cls =>
+    socket.on("class-moved", ({ classId, position }) => {
+      setClasses((prevClasses) =>
+        prevClasses.map((cls) =>
           cls.id === classId ? { ...cls, x: position.x, y: position.y } : cls
         )
       );
     });
 
     // Cuando otro usuario agrega una clase
-    socket.on('class-added', ({ newClass }) => {
-      setClasses(prevClasses => [...prevClasses, newClass]);
+    socket.on("class-added", ({ newClass }) => {
+      setClasses((prevClasses) => [...prevClasses, newClass]);
     });
 
     // Cuando otro usuario modifica una clase
-    socket.on('class-updated', ({ classId, updatedData }) => {
-      setClasses(prevClasses =>
-        prevClasses.map(cls =>
+    socket.on("class-updated", ({ classId, updatedData }) => {
+      setClasses((prevClasses) =>
+        prevClasses.map((cls) =>
           cls.id === classId ? { ...cls, ...updatedData } : cls
         )
       );
     });
 
     // Cuando otro usuario elimina una clase
-    socket.on('class-deleted', ({ classId }) => {
-      setClasses(prevClasses => prevClasses.filter(cls => cls.id !== classId));
-      setRelations(prevRelations => 
-        prevRelations.filter(rel => rel.source !== classId && rel.target !== classId)
+    socket.on("class-deleted", ({ classId }) => {
+      setClasses((prevClasses) =>
+        prevClasses.filter((cls) => cls.id !== classId)
+      );
+      setRelations((prevRelations) =>
+        prevRelations.filter(
+          (rel) => rel.source !== classId && rel.target !== classId
+        )
       );
     });
 
     // Cuando otro usuario agrega una relación
-    socket.on('relation-added', ({ newRelation }) => {
-      setRelations(prevRelations => [...prevRelations, newRelation]);
+    socket.on("relation-added", ({ newRelation }) => {
+      setRelations((prevRelations) => [...prevRelations, newRelation]);
     });
 
     // Cuando otro usuario modifica una relación
-    socket.on('relation-updated', ({ relationId, updatedData }) => {
-      setRelations(prevRelations =>
-        prevRelations.map(rel =>
+    socket.on("relation-updated", ({ relationId, updatedData }) => {
+      setRelations((prevRelations) =>
+        prevRelations.map((rel) =>
           rel.id === relationId ? { ...rel, ...updatedData } : rel
         )
       );
     });
 
     // Cuando otro usuario elimina una relación
-    socket.on('relation-deleted', ({ relationId }) => {
-      setRelations(prevRelations => prevRelations.filter(rel => rel.id !== relationId));
+    socket.on("relation-deleted", ({ relationId }) => {
+      setRelations((prevRelations) =>
+        prevRelations.filter((rel) => rel.id !== relationId)
+      );
     });
 
     return () => {
       // Limpiar eventos al cerrar el editor
       socket.removeAllListeners();
-      window.removeEventListener('ai-patch-apply', handleAIPatchApply);
+      window.removeEventListener("ai-patch-apply", handleAIPatchApply);
     };
   }, [id, normalizeUsers, isAgentUpdating, titulo]);
 
   // Cargar diagrama inicial
   const cargarDiagrama = useCallback(async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(API_CONFIG.getUrl(`/api/diagramas/${id}`), {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        API_CONFIG.getUrl(`/api/diagramas/${id}`),
+        {
           headers: { Authorization: `Bearer ${token}` },
-        });
-  const diagrama = response.data;
-        setTitulo(diagrama.titulo);
-        
-         const loadedClasses = diagrama.contenido.classes || [];
-         const loadedRelations = diagrama.contenido.relations || [];
-         
-         // Eliminar clases/relaciones duplicadas
-         const uniqueClasses = loadedClasses.filter((cls, index, self) => 
-           index === self.findIndex(c => c.id === cls.id)
-         );
-         const uniqueRelations = loadedRelations.filter((rel, index, self) => 
-           index === self.findIndex(r => r.id === rel.id)
-         );
-         
-         // Arreglar posiciones inválidas
-         const sanitized = sanitizeClassesPositions(uniqueClasses);
-         setClasses(sanitized);
-         console.log('Clases cargadas:', uniqueClasses.length);
-         
-         setRelations(uniqueRelations);
-        
-        if (socketRef.current) {
-          socketRef.current.emit('join-diagram', {
-            roomId: id,
-            diagramData: diagrama
-          });
         }
-        
-        
-        setHttpConnected(true);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error al cargar el diagrama:', error);
-        setError('Error al cargar el diagrama. Verifica tu conexión.');
-        setLoading(false);
+      );
+      const diagrama = response.data;
+      setTitulo(diagrama.titulo);
+
+      const loadedClasses = diagrama.contenido.classes || [];
+      const loadedRelations = diagrama.contenido.relations || [];
+
+      // Eliminar clases/relaciones duplicadas
+      const uniqueClasses = loadedClasses.filter(
+        (cls, index, self) => index === self.findIndex((c) => c.id === cls.id)
+      );
+      const uniqueRelations = loadedRelations.filter(
+        (rel, index, self) => index === self.findIndex((r) => r.id === rel.id)
+      );
+
+      // Arreglar posiciones inválidas
+      const sanitized = sanitizeClassesPositions(uniqueClasses);
+      setClasses(sanitized);
+      console.log("Clases cargadas:", uniqueClasses.length);
+
+      setRelations(uniqueRelations);
+
+      if (socketRef.current) {
+        socketRef.current.emit("join-diagram", {
+          roomId: id,
+          diagramData: diagrama,
+        });
       }
-    }, [id, sanitizeClassesPositions]);
+
+      setHttpConnected(true);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error al cargar el diagrama:", error);
+      setError("Error al cargar el diagrama. Verifica tu conexión.");
+      setLoading(false);
+    }
+  }, [id, sanitizeClassesPositions]);
 
   useEffect(() => {
     cargarDiagrama();
@@ -504,9 +530,9 @@ const EditorDiagrama = () => {
 
   // Seguir el cursor al crear relaciones
   useEffect(() => {
-  if (isCreatingRelation && selectedClass) {
+    if (isCreatingRelation && selectedClass) {
       const handleMouseMove = (e) => {
-        const canvas = document.querySelector('.diagram-canvas');
+        const canvas = document.querySelector(".diagram-canvas");
         if (canvas) {
           const rect = canvas.getBoundingClientRect();
           const x = (e.clientX - rect.left) / zoomLevel;
@@ -514,9 +540,9 @@ const EditorDiagrama = () => {
           setCursorPosition({ x, y });
         }
       };
-      
-      document.addEventListener('mousemove', handleMouseMove);
-      return () => document.removeEventListener('mousemove', handleMouseMove);
+
+      document.addEventListener("mousemove", handleMouseMove);
+      return () => document.removeEventListener("mousemove", handleMouseMove);
     }
   }, [isCreatingRelation, selectedClass, zoomLevel]);
 
@@ -527,7 +553,7 @@ const EditorDiagrama = () => {
         e.preventDefault();
         setCanvasOffset({
           x: e.clientX - panStart.x,
-          y: e.clientY - panStart.y
+          y: e.clientY - panStart.y,
         });
       }
     };
@@ -540,17 +566,17 @@ const EditorDiagrama = () => {
     };
 
     if (isPanning) {
-    document.addEventListener('mousemove', handleGlobalMouseMove);
-    document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.body.style.cursor = 'grabbing';
-      document.body.style.userSelect = 'none';
+      document.addEventListener("mousemove", handleGlobalMouseMove);
+      document.addEventListener("mouseup", handleGlobalMouseUp);
+      document.body.style.cursor = "grabbing";
+      document.body.style.userSelect = "none";
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      document.removeEventListener("mousemove", handleGlobalMouseMove);
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     };
   }, [isPanning, panStart]);
 
@@ -570,12 +596,15 @@ const EditorDiagrama = () => {
       }
     };
     const preventKeyZoom = (e) => {
-      const isPlus = e.key === '+' || e.key === '=';
-      const isMinus = e.key === '-' || e.key === '_';
-      const isZero = e.key === '0' || e.key === ')';
-      const isNumpadPlus = e.key === 'Add';
-      const isNumpadMinus = e.key === 'Subtract';
-      if ((e.ctrlKey || e.metaKey) && (isPlus || isMinus || isZero || isNumpadPlus || isNumpadMinus)) {
+      const isPlus = e.key === "+" || e.key === "=";
+      const isMinus = e.key === "-" || e.key === "_";
+      const isZero = e.key === "0" || e.key === ")";
+      const isNumpadPlus = e.key === "Add";
+      const isNumpadMinus = e.key === "Subtract";
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        (isPlus || isMinus || isZero || isNumpadPlus || isNumpadMinus)
+      ) {
         e.preventDefault();
       }
     };
@@ -583,22 +612,64 @@ const EditorDiagrama = () => {
       e.preventDefault();
     };
 
-    window.addEventListener('wheel', preventWheelZoom, { passive: false, capture: true });
-    window.addEventListener('mousewheel', preventWheelZoom, { passive: false, capture: true });
-    window.addEventListener('DOMMouseScroll', preventWheelZoom, { passive: false, capture: true });
-    window.addEventListener('keydown', preventKeyZoom, { passive: false, capture: true });
-    window.addEventListener('gesturestart', preventGesture, { passive: false, capture: true });
-    window.addEventListener('gesturechange', preventGesture, { passive: false, capture: true });
-    window.addEventListener('gestureend', preventGesture, { passive: false, capture: true });
+    window.addEventListener("wheel", preventWheelZoom, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("mousewheel", preventWheelZoom, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("DOMMouseScroll", preventWheelZoom, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("keydown", preventKeyZoom, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("gesturestart", preventGesture, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("gesturechange", preventGesture, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("gestureend", preventGesture, {
+      passive: false,
+      capture: true,
+    });
 
     return () => {
-      window.removeEventListener('wheel', preventWheelZoom, { passive: false, capture: true });
-      window.removeEventListener('mousewheel', preventWheelZoom, { passive: false, capture: true });
-      window.removeEventListener('DOMMouseScroll', preventWheelZoom, { passive: false, capture: true });
-      window.removeEventListener('keydown', preventKeyZoom, { passive: false, capture: true });
-      window.removeEventListener('gesturestart', preventGesture, { passive: false, capture: true });
-      window.removeEventListener('gesturechange', preventGesture, { passive: false, capture: true });
-      window.removeEventListener('gestureend', preventGesture, { passive: false, capture: true });
+      window.removeEventListener("wheel", preventWheelZoom, {
+        passive: false,
+        capture: true,
+      });
+      window.removeEventListener("mousewheel", preventWheelZoom, {
+        passive: false,
+        capture: true,
+      });
+      window.removeEventListener("DOMMouseScroll", preventWheelZoom, {
+        passive: false,
+        capture: true,
+      });
+      window.removeEventListener("keydown", preventKeyZoom, {
+        passive: false,
+        capture: true,
+      });
+      window.removeEventListener("gesturestart", preventGesture, {
+        passive: false,
+        capture: true,
+      });
+      window.removeEventListener("gesturechange", preventGesture, {
+        passive: false,
+        capture: true,
+      });
+      window.removeEventListener("gestureend", preventGesture, {
+        passive: false,
+        capture: true,
+      });
     };
   }, []);
 
@@ -616,16 +687,16 @@ const EditorDiagrama = () => {
       const mouseY = e.clientY - rect.top;
 
       const zoomFactor = newZoom / zoomLevel;
-      setCanvasOffset(prev => ({
+      setCanvasOffset((prev) => ({
         x: mouseX - (mouseX - prev.x) * zoomFactor,
-        y: mouseY - (mouseY - prev.y) * zoomFactor
+        y: mouseY - (mouseY - prev.y) * zoomFactor,
       }));
       setZoomLevel(newZoom);
     } else {
       // Desplazamiento normal
-      setCanvasOffset(prev => ({
+      setCanvasOffset((prev) => ({
         x: prev.x - e.deltaX,
-        y: prev.y - e.deltaY
+        y: prev.y - e.deltaY,
       }));
     }
   };
@@ -638,7 +709,7 @@ const EditorDiagrama = () => {
       setIsPanning(true);
       setPanStart({
         x: e.clientX - canvasOffset.x,
-        y: e.clientY - canvasOffset.y
+        y: e.clientY - canvasOffset.y,
       });
     }
   };
@@ -649,7 +720,7 @@ const EditorDiagrama = () => {
       e.stopPropagation();
       setCanvasOffset({
         x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y
+        y: e.clientY - panStart.y,
       });
     }
   };
@@ -671,76 +742,76 @@ const EditorDiagrama = () => {
   // Aplicar cambios del agente al diagrama
   const applyAIPatch = (patch) => {
     try {
-      console.log('Aplicando cambios del agente:', patch);
-      
+      console.log("Aplicando cambios del agente:", patch);
+
       if (!Array.isArray(patch)) {
-        console.error('Cambios no válidos:', patch);
+        console.error("Cambios no válidos:", patch);
         return;
       }
-      
+
       patch.forEach((change, index) => {
         try {
           console.log(`Cambio ${index + 1}:`, change);
-          
+
           switch (change.type) {
-            case 'modify_class':
+            case "modify_class":
               // Modificar clase existente
               if (change.id && change.data) {
-                setClasses(prevClasses =>
-                  prevClasses.map(cls =>
+                setClasses((prevClasses) =>
+                  prevClasses.map((cls) =>
                     cls.id === change.id ? { ...cls, ...change.data } : cls
                   )
                 );
                 console.log(`Clase ${change.id} modificada`);
               } else {
-                console.warn('⚠️ Datos incompletos:', change);
+                console.warn("⚠️ Datos incompletos:", change);
               }
               break;
-              
-                 case 'add_class':
-                   // Agregar nueva clase
-                   const classData = change.data || change;
-                   if (classData.id && classData.name) {
-                     // Calcular posición para evitar solapamiento
-                     const baseX = 300;
-                     const baseY = 300;
-                     const spacingX = 400;
-                     const spacingY = 300;
-                     
-                     const index = patch.findIndex(p => p === change);
-                     const row = Math.floor(index / 4);
-                     const col = index % 4;
-                     
-                     const newClass = {
-                       id: classData.id,
-                       name: classData.name,
-                       x: classData.x || baseX + (col * spacingX),
-                       y: classData.y || baseY + (row * spacingY),
-                       attributes: classData.attributes || [],
-                       methods: classData.methods || []
-                     };
-                     setClasses(prevClasses => [...prevClasses, newClass]);
-                     console.log(`Clase ${classData.name} agregada`);
-                   } else {
-                     console.warn('⚠️ Datos incompletos:', change);
-                   }
-                   break;
-              
-            case 'modify_relation':
+
+            case "add_class":
+              // Agregar nueva clase
+              const classData = change.data || change;
+              if (classData.id && classData.name) {
+                // Calcular posición para evitar solapamiento
+                const baseX = 300;
+                const baseY = 300;
+                const spacingX = 400;
+                const spacingY = 300;
+
+                const index = patch.findIndex((p) => p === change);
+                const row = Math.floor(index / 4);
+                const col = index % 4;
+
+                const newClass = {
+                  id: classData.id,
+                  name: classData.name,
+                  x: classData.x || baseX + col * spacingX,
+                  y: classData.y || baseY + row * spacingY,
+                  attributes: classData.attributes || [],
+                  methods: classData.methods || [],
+                };
+                setClasses((prevClasses) => [...prevClasses, newClass]);
+                console.log(`Clase ${classData.name} agregada`);
+              } else {
+                console.warn("⚠️ Datos incompletos:", change);
+              }
+              break;
+
+            case "modify_relation":
               // Modificar relación existente
               if (change.id && change.data) {
-                setRelations(prevRelations =>
-                  prevRelations.map(rel =>
+                setRelations((prevRelations) =>
+                  prevRelations.map((rel) =>
                     rel.id === change.id ? { ...rel, ...change.data } : rel
                   )
                 );
                 console.log(`Relación ${change.id} modificada`);
               } else {
-                console.warn('⚠️ Datos incompletos:', change);
+                console.warn("⚠️ Datos incompletos:", change);
               }
               break;
-              
-            case 'add_relation':
+
+            case "add_relation":
               // Agregar nueva relación
               if (change.data && change.data.id) {
                 const newRelation = {
@@ -749,90 +820,107 @@ const EditorDiagrama = () => {
                   target: change.data.target,
                   type: change.data.type,
                   multiplicidadOrigen: change.data.multiplicidadOrigen,
-                  multiplicidadDestino: change.data.multiplicidadDestino
+                  multiplicidadDestino: change.data.multiplicidadDestino,
                 };
-                setRelations(prevRelations => [...prevRelations, newRelation]);
+                setRelations((prevRelations) => [
+                  ...prevRelations,
+                  newRelation,
+                ]);
                 console.log(`Relación ${change.data.type} agregada`);
               } else {
-                console.warn('⚠️ Datos incompletos:', change);
+                console.warn("⚠️ Datos incompletos:", change);
               }
               break;
-              
-            case 'remove_relation':
+
+            case "remove_relation":
               // Eliminar relación
               if (change.id) {
-                setRelations(prevRelations =>
-                  prevRelations.filter(rel => rel.id !== change.id)
+                setRelations((prevRelations) =>
+                  prevRelations.filter((rel) => rel.id !== change.id)
                 );
                 console.log(`Relación ${change.id} eliminada`);
               } else {
-                console.warn('⚠️ ID faltante:', change);
+                console.warn("⚠️ ID faltante:", change);
               }
               break;
-              
-            case 'remove_class':
+
+            case "remove_class":
               // Eliminar clase y sus relaciones
               if (change.id) {
-                setClasses(prevClasses => prevClasses.filter(cls => cls.id !== change.id));
-                setRelations(prevRelations =>
-                  prevRelations.filter(rel => rel.source !== change.id && rel.target !== change.id)
+                setClasses((prevClasses) =>
+                  prevClasses.filter((cls) => cls.id !== change.id)
+                );
+                setRelations((prevRelations) =>
+                  prevRelations.filter(
+                    (rel) =>
+                      rel.source !== change.id && rel.target !== change.id
+                  )
                 );
                 console.log(`Clase ${change.id} eliminada`);
               } else {
-                console.warn('⚠️ ID faltante:', change);
+                console.warn("⚠️ ID faltante:", change);
               }
               break;
-              
+
             default:
-              console.warn('⚠️ Tipo desconocido:', change.type, change);
+              console.warn("⚠️ Tipo desconocido:", change.type, change);
           }
         } catch (changeError) {
           console.error(`Error en cambio ${index + 1}:`, changeError, change);
         }
       });
-      
-      
-      console.log('Cambios aplicados');
+
+      console.log("Cambios aplicados");
     } catch (error) {
-      console.error('Error aplicando cambios:', error);
+      console.error("Error aplicando cambios:", error);
     }
   };
 
   // Ajustar zoom para ver todo el diagrama
-  const fitToBounds = useCallback((padding = 80) => {
-    if (classes.length === 0) return;
+  const fitToBounds = useCallback(
+    (padding = 80) => {
+      if (classes.length === 0) return;
 
-    const viewport = viewportRef.current;
-    if (!viewport) return;
+      const viewport = viewportRef.current;
+      if (!viewport) return;
 
-    const rect = viewport.getBoundingClientRect();
+      const rect = viewport.getBoundingClientRect();
 
-    const xs = classes.map(c => Number.isFinite(c.x) ? c.x : 0);
-    const ys = classes.map(c => Number.isFinite(c.y) ? c.y : 0);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs.map((x, i) => x + 300));
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys.map((y, i) => y + 200));
+      const xs = classes.map((c) => (Number.isFinite(c.x) ? c.x : 0));
+      const ys = classes.map((c) => (Number.isFinite(c.y) ? c.y : 0));
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs.map((x, i) => x + 300));
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys.map((y, i) => y + 200));
 
-    const contentW = Math.max(1, maxX - minX);
-    const contentH = Math.max(1, maxY - minY);
+      const contentW = Math.max(1, maxX - minX);
+      const contentH = Math.max(1, maxY - minY);
 
-    const scaleX = (rect.width - padding * 2) / contentW;
-    const scaleY = (rect.height - padding * 2) / contentH;
-    let newZoom = Math.min(scaleX, scaleY);
-    if (!Number.isFinite(newZoom) || newZoom <= 0) newZoom = 1;
-    newZoom = Math.max(0.1, Math.min(2, newZoom));
+      const scaleX = (rect.width - padding * 2) / contentW;
+      const scaleY = (rect.height - padding * 2) / contentH;
+      let newZoom = Math.min(scaleX, scaleY);
+      if (!Number.isFinite(newZoom) || newZoom <= 0) newZoom = 1;
+      newZoom = Math.max(0.1, Math.min(2, newZoom));
 
-    setZoomLevel(newZoom);
+      setZoomLevel(newZoom);
 
-    let newOffsetX = Math.round(padding - minX * newZoom + (rect.width - padding * 2 - contentW * newZoom) / 2);
-    let newOffsetY = Math.round(padding - minY * newZoom + (rect.height - padding * 2 - contentH * newZoom) / 2);
-    if (!Number.isFinite(newOffsetX)) newOffsetX = 0;
-    if (!Number.isFinite(newOffsetY)) newOffsetY = 0;
+      let newOffsetX = Math.round(
+        padding -
+          minX * newZoom +
+          (rect.width - padding * 2 - contentW * newZoom) / 2
+      );
+      let newOffsetY = Math.round(
+        padding -
+          minY * newZoom +
+          (rect.height - padding * 2 - contentH * newZoom) / 2
+      );
+      if (!Number.isFinite(newOffsetX)) newOffsetX = 0;
+      if (!Number.isFinite(newOffsetY)) newOffsetY = 0;
 
-    setCanvasOffset({ x: newOffsetX, y: newOffsetY });
-  }, [classes]);
-
+      setCanvasOffset({ x: newOffsetX, y: newOffsetY });
+    },
+    [classes]
+  );
 
   // Auto-ajustar vista al cargar
   useEffect(() => {
@@ -849,21 +937,20 @@ const EditorDiagrama = () => {
     hasAutoFitRef.current = false;
   }, [id]);
 
-
   const handleClassUpdate = (classId, updatedData) => {
     // Actualizar clase localmente
-    setClasses(prevClasses =>
-      prevClasses.map(cls =>
+    setClasses((prevClasses) =>
+      prevClasses.map((cls) =>
         cls.id === classId ? { ...cls, ...updatedData } : cls
       )
     );
 
     // Notificar a otros usuarios
     if (socketRef.current) {
-      socketRef.current.emit('update-class', {
+      socketRef.current.emit("update-class", {
         roomId: id,
-      classId,
-        data: updatedData
+        classId,
+        data: updatedData,
       });
     }
   };
@@ -876,19 +963,19 @@ const EditorDiagrama = () => {
     const CLASS_HEIGHT = 150;
     const MIN_SPACING = 350;
     const GRID_SIZE = 100;
-    
+
     // Agrupar clases por relaciones
     const relatedGroups = new Map();
     const classGroups = new Map();
     let groupId = 0;
 
-    relations.forEach(rel => {
+    relations.forEach((rel) => {
       const sourceId = rel.source;
       const targetId = rel.target;
-      
+
       const sourceGroup = classGroups.get(sourceId);
       const targetGroup = classGroups.get(targetId);
-      
+
       if (!sourceGroup && !targetGroup) {
         classGroups.set(sourceId, groupId);
         classGroups.set(targetId, groupId);
@@ -902,7 +989,7 @@ const EditorDiagrama = () => {
         relatedGroups.get(targetGroup).push(sourceId);
       } else if (sourceGroup !== targetGroup) {
         const targetGroupClasses = relatedGroups.get(targetGroup);
-        targetGroupClasses.forEach(clsId => {
+        targetGroupClasses.forEach((clsId) => {
           classGroups.set(clsId, sourceGroup);
         });
         relatedGroups.get(sourceGroup).push(...targetGroupClasses);
@@ -911,7 +998,7 @@ const EditorDiagrama = () => {
     });
 
     // Clases solas van a su propio grupo
-    classes.forEach(cls => {
+    classes.forEach((cls) => {
       if (!classGroups.has(cls.id)) {
         classGroups.set(cls.id, groupId);
         relatedGroups.set(groupId, [cls.id]);
@@ -920,46 +1007,46 @@ const EditorDiagrama = () => {
     });
 
     const updatedClasses = [...classes];
-    
+
     const startX = 200;
     const startY = 200;
-    
+
     // Distribuir grupos
     const groupsArray = Array.from(relatedGroups.entries());
     const cols = Math.ceil(Math.sqrt(groupsArray.length));
-    
+
     groupsArray.forEach(([groupId, classIds], index) => {
       const row = Math.floor(index / cols);
       const col = index % cols;
-      
+
       const groupX = startX + col * (CLASS_WIDTH + MIN_SPACING);
       const groupY = startY + row * (CLASS_HEIGHT + MIN_SPACING);
-      
+
       // Distribuir clases del grupo en layout circular compacto
       const groupSize = classIds.length;
       const radius = Math.max(80, (groupSize * 40) / (2 * Math.PI));
-      
+
       classIds.forEach((classId, idx) => {
-        const classIndex = updatedClasses.findIndex(c => c.id === classId);
+        const classIndex = updatedClasses.findIndex((c) => c.id === classId);
         if (classIndex === -1) return;
-        
+
         if (groupSize === 1) {
           // Una sola clase - posición central
           updatedClasses[classIndex] = {
             ...updatedClasses[classIndex],
             x: Math.round(groupX / GRID_SIZE) * GRID_SIZE,
-            y: Math.round(groupY / GRID_SIZE) * GRID_SIZE
+            y: Math.round(groupY / GRID_SIZE) * GRID_SIZE,
           };
         } else {
           // Múltiples clases - layout circular
           const angle = (idx / groupSize) * 2 * Math.PI;
           const offsetX = Math.cos(angle) * radius;
           const offsetY = Math.sin(angle) * radius;
-          
+
           updatedClasses[classIndex] = {
             ...updatedClasses[classIndex],
             x: Math.round((groupX + offsetX) / GRID_SIZE) * GRID_SIZE,
-            y: Math.round((groupY + offsetY) / GRID_SIZE) * GRID_SIZE
+            y: Math.round((groupY + offsetY) / GRID_SIZE) * GRID_SIZE,
           };
         }
       });
@@ -975,25 +1062,25 @@ const EditorDiagrama = () => {
           const dy = Math.abs(cls.y - other.y);
           return dx < CLASS_WIDTH + 50 && dy < CLASS_HEIGHT + 50;
         });
-        
+
         if (!hasOverlap) break;
-        
+
         // Desplazar ligeramente
         cls.x += (attempts % 2 === 0 ? 1 : -1) * MIN_SPACING;
         cls.y += (attempts % 3 === 0 ? 1 : -1) * MIN_SPACING;
         attempts++;
       }
-      
+
       // Aplicar snap-to-grid
       cls.x = Math.round(cls.x / GRID_SIZE) * GRID_SIZE;
       cls.y = Math.round(cls.y / GRID_SIZE) * GRID_SIZE;
     });
 
     // Actualizar todas las clases
-    updatedClasses.forEach(updatedClass => {
-      handleClassUpdate(updatedClass.id, { 
-        x: updatedClass.x, 
-        y: updatedClass.y 
+    updatedClasses.forEach((updatedClass) => {
+      handleClassUpdate(updatedClass.id, {
+        x: updatedClass.x,
+        y: updatedClass.y,
       });
     });
 
@@ -1004,82 +1091,95 @@ const EditorDiagrama = () => {
   }, [classes, relations, handleClassUpdate, fitToBounds]);
 
   const handleClassDelete = (classId) => {
-    setClasses(prevClasses => prevClasses.filter(cls => cls.id !== classId));
-    setRelations(prevRelations => 
-      prevRelations.filter(rel => rel.source !== classId && rel.target !== classId)
+    setClasses((prevClasses) =>
+      prevClasses.filter((cls) => cls.id !== classId)
+    );
+    setRelations((prevRelations) =>
+      prevRelations.filter(
+        (rel) => rel.source !== classId && rel.target !== classId
+      )
     );
 
     if (socketRef.current) {
-      socketRef.current.emit('delete-class', {
+      socketRef.current.emit("delete-class", {
         roomId: id,
-        classId
+        classId,
       });
     }
   };
 
   const agregarClase = () => {
     const newId = `class-${Date.now()}`;
-    
+
     // Calcular posición inteligente basada en las clases existentes
     let newX = 200;
     let newY = 200;
-    
+
     if (classes.length > 0) {
       // Encontrar una posición libre cerca del centro del viewport actual
-      const viewportCenterX = -canvasOffset.x / zoomLevel + (viewportRef.current?.clientWidth || 800) / 2 / zoomLevel;
-      const viewportCenterY = -canvasOffset.y / zoomLevel + (viewportRef.current?.clientHeight || 600) / 2 / zoomLevel;
-      
+      const viewportCenterX =
+        -canvasOffset.x / zoomLevel +
+        (viewportRef.current?.clientWidth || 800) / 2 / zoomLevel;
+      const viewportCenterY =
+        -canvasOffset.y / zoomLevel +
+        (viewportRef.current?.clientHeight || 600) / 2 / zoomLevel;
+
       // Usar el centro del viewport como referencia
       newX = Math.max(50, viewportCenterX - 150);
       newY = Math.max(50, viewportCenterY - 75);
-      
+
       // Evitar solapamiento con clases existentes
       const spacing = 350;
       let attempts = 0;
       let currentX = newX;
       let currentY = newY;
-      
+
       const checkOverlap = (x, y) => {
-        return classes.some(cls => 
-          Math.abs(cls.x - x) < spacing && Math.abs(cls.y - y) < spacing
+        return classes.some(
+          (cls) =>
+            Math.abs(cls.x - x) < spacing && Math.abs(cls.y - y) < spacing
         );
       };
-      
+
       while (attempts < 10) {
         if (!checkOverlap(currentX, currentY)) {
           newX = currentX;
           newY = currentY;
           break;
         }
-        
+
         // Mover hacia la derecha y abajo en espiral
         currentX += spacing * 0.7;
         currentY += spacing * 0.3;
         attempts++;
       }
     }
-    
+
     const newClass = {
       id: newId,
-      name: 'Nueva Clase',
+      name: "Nueva Clase",
       x: newX,
       y: newY,
       attributes: [`id_${newId} (PK)`],
       methods: [],
     };
-    
+
     setClasses((prevClasses) => [...prevClasses, newClass]);
 
     // Emitir evento específico
     if (socketRef.current) {
-      socketRef.current.emit('add-class', {
+      socketRef.current.emit("add-class", {
         roomId: id,
         newClass,
       });
     }
 
     // Feedback visual
-    console.log(`Clase "${newClass.name}" agregada exitosamente en posición (${Math.round(newX)}, ${Math.round(newY)})`);
+    console.log(
+      `Clase "${newClass.name}" agregada exitosamente en posición (${Math.round(
+        newX
+      )}, ${Math.round(newY)})`
+    );
   };
 
   const handleClassClick = (classItem) => {
@@ -1088,34 +1188,46 @@ const EditorDiagrama = () => {
         // Primera clase seleccionada
         setSelectedClass(classItem);
         console.log(`🔗 Primera clase seleccionada: ${classItem.name}`);
-        
+
         // Feedback visual mejorado
-        const classElement = document.querySelector(`[data-class-id="${classItem.id}"]`);
+        const classElement = document.querySelector(
+          `[data-class-id="${classItem.id}"]`
+        );
         if (classElement) {
-          classElement.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.6)';
-          classElement.style.transform = 'scale(1.05)';
+          classElement.style.boxShadow = "0 0 0 4px rgba(16, 185, 129, 0.6)";
+          classElement.style.transform = "scale(1.05)";
         }
       } else if (selectedClass && selectedClass.id !== classItem.id) {
         // Segunda clase seleccionada - crear relación
-        console.log(`Segunda clase seleccionada: ${classItem.name}, creando relación ${relationType}`);
-        
+        console.log(
+          `Segunda clase seleccionada: ${classItem.name}, creando relación ${relationType}`
+        );
+
         // Crear la relación según el tipo
-        const success = createRelationByType(selectedClass, classItem, relationType);
-        
+        const success = createRelationByType(
+          selectedClass,
+          classItem,
+          relationType
+        );
+
         if (success) {
           // Feedback visual de éxito
-          console.log(`Relación ${relationType} creada exitosamente entre ${selectedClass.name} y ${classItem.name}`);
+          console.log(
+            `Relación ${relationType} creada exitosamente entre ${selectedClass.name} y ${classItem.name}`
+          );
         }
       } else if (selectedClass && selectedClass.id === classItem.id) {
         // Deseleccionar si se hace clic en la misma clase
         console.log(`Deseleccionando clase: ${classItem.name}`);
         setSelectedClass(null);
-        
+
         // Limpiar feedback visual
-        const classElement = document.querySelector(`[data-class-id="${classItem.id}"]`);
+        const classElement = document.querySelector(
+          `[data-class-id="${classItem.id}"]`
+        );
         if (classElement) {
-          classElement.style.boxShadow = '';
-          classElement.style.transform = '';
+          classElement.style.boxShadow = "";
+          classElement.style.transform = "";
         }
       }
     } else {
@@ -1126,62 +1238,66 @@ const EditorDiagrama = () => {
 
   // Función mejorada para crear relaciones según el tipo
   const createRelationByType = (sourceClass, targetClass, type) => {
-    console.log(`Creando relación ${type} entre ${sourceClass.name} y ${targetClass.name}`);
-    
+    console.log(
+      `Creando relación ${type} entre ${sourceClass.name} y ${targetClass.name}`
+    );
+
     let success = true;
-    
+
     switch (type) {
-      case 'Composición':
+      case "Composición":
         createComposicion(sourceClass, targetClass);
         break;
-      case 'Agregacion':
+      case "Agregacion":
         createAgregacion(sourceClass, targetClass);
         break;
-      case 'Generalización':
+      case "Generalización":
         createGeneralizacion(sourceClass, targetClass);
         break;
-      case 'Muchos a Muchos':
+      case "Muchos a Muchos":
         createMuchosAMuchos(sourceClass, targetClass);
         break;
-      case 'Asociación':
+      case "Asociación":
       default:
         success = createAsociacion(sourceClass, targetClass);
         break;
     }
-    
+
     // Limpiar selecciones y salir del modo de creación solo si fue exitoso
     if (success) {
       resetRelationCreation();
     }
-    
+
     return success;
   };
 
   // Función para resetear el estado de creación de relaciones
   const resetRelationCreation = () => {
     // Limpiar feedback visual de todas las clases
-    const classElements = document.querySelectorAll('[data-class-id]');
-    classElements.forEach(element => {
-      element.style.boxShadow = '';
-      element.style.transform = '';
+    const classElements = document.querySelectorAll("[data-class-id]");
+    classElements.forEach((element) => {
+      element.style.boxShadow = "";
+      element.style.transform = "";
     });
-    
+
     setSelectedClass(null);
     setIsCreatingRelation(false);
-    console.log('Estado de creación de relaciones reseteado - todas las clases deseleccionadas');
+    console.log(
+      "Estado de creación de relaciones reseteado - todas las clases deseleccionadas"
+    );
   };
 
   // Función auxiliar para limpiar la selección de clases
   const clearClassSelection = () => {
     // Limpiar feedback visual de todas las clases
-    const classElements = document.querySelectorAll('[data-class-id]');
-    classElements.forEach(element => {
-      element.style.boxShadow = '';
-      element.style.transform = '';
+    const classElements = document.querySelectorAll("[data-class-id]");
+    classElements.forEach((element) => {
+      element.style.boxShadow = "";
+      element.style.transform = "";
     });
-    
+
     setSelectedClass(null);
-    console.log('Selección de clases limpiada');
+    console.log("Selección de clases limpiada");
   };
 
   // Función para cancelar la creación de relaciones
@@ -1191,12 +1307,12 @@ const EditorDiagrama = () => {
 
   // Función para generar JDL usando el nuevo endpoint
   const generateSpringBootProject = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     setExportError(null);
     setJdlContent(null);
     setZipDownloadUrl(null);
     setLoading(true);
-    
+
     try {
       // Usar axios con timeout extendido para peticiones largas (generar proyecto puede tardar)
       // Usamos 'blob' para poder manejar tanto ZIP como JSON/texto
@@ -1205,58 +1321,61 @@ const EditorDiagrama = () => {
         {},
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
           timeout: 300000, // 5 minutos de timeout para procesos largos
-          responseType: 'blob' // Permite manejar tanto ZIP como JSON/texto
+          responseType: "blob", // Permite manejar tanto ZIP como JSON/texto
         }
       );
-      
+
       // Verificar el tipo de contenido de la respuesta
-      const contentType = response.headers['content-type'] || response.headers['Content-Type'] || '';
-      
-      if (contentType.includes('application/zip')) {
+      const contentType =
+        response.headers["content-type"] ||
+        response.headers["Content-Type"] ||
+        "";
+
+      if (contentType.includes("application/zip")) {
         // Si es un ZIP, response.data ya es un Blob
         const zipUrl = window.URL.createObjectURL(response.data);
         setZipDownloadUrl(zipUrl);
-        setJdlContent('Archivo ZIP generado exitosamente');
+        setJdlContent("Archivo ZIP generado exitosamente");
         setExportError(null);
-        
+
         // Descargar automáticamente el ZIP
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = zipUrl;
-        link.download = `${titulo || 'diagrama'}-springboot-project.zip`;
+        link.download = `${titulo || "diagrama"}-springboot-project.zip`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        alert('¡Proyecto Spring Boot generado y descargado exitosamente!');
-      } else if (contentType.includes('application/json')) {
+
+        alert("¡Proyecto Spring Boot generado y descargado exitosamente!");
+      } else if (contentType.includes("application/json")) {
         // Si es JSON, leer el blob como texto y parsearlo
         const text = await response.data.text();
         const result = JSON.parse(text);
-        
+
         if (result.success) {
           setJdlContent(result.jdlContent);
-          
+
           // Si el backend también devuelve un ZIP del proyecto generado
           if (result.zipUrl) {
             setZipDownloadUrl(result.zipUrl);
-            
+
             // Descargar automáticamente el ZIP
-            const link = document.createElement('a');
+            const link = document.createElement("a");
             link.href = result.zipUrl;
-            link.download = `${titulo || 'diagrama'}-springboot-project.zip`;
+            link.download = `${titulo || "diagrama"}-springboot-project.zip`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
           }
-          
+
           setExportError(null);
-          alert('¡Proyecto Spring Boot generado exitosamente!');
+          alert("¡Proyecto Spring Boot generado exitosamente!");
         } else {
-          setExportError(result.message || 'No se pudo generar el JDL.');
+          setExportError(result.message || "No se pudo generar el JDL.");
           setJdlContent(null);
           setZipDownloadUrl(null);
         }
@@ -1265,22 +1384,25 @@ const EditorDiagrama = () => {
         const textResult = await response.data.text();
         setJdlContent(textResult);
         setExportError(null);
-        alert('¡JDL generado exitosamente!');
+        alert("¡JDL generado exitosamente!");
       }
     } catch (error) {
-      console.error('Error generando proyecto:', error);
-      
+      console.error("Error generando proyecto:", error);
+
       // Detectar diferentes tipos de errores con axios
-      let errorMessage = 'Error generando proyecto: ';
-      
+      let errorMessage = "Error generando proyecto: ";
+
       if (error.response) {
         // El servidor respondió con un código de error (4xx, 5xx)
-        errorMessage += `Error HTTP ${error.response.status}: ${error.response.statusText || 'Error del servidor'}`;
+        errorMessage += `Error HTTP ${error.response.status}: ${
+          error.response.statusText || "Error del servidor"
+        }`;
         if (error.response.data) {
           try {
-            const errorData = typeof error.response.data === 'string' 
-              ? JSON.parse(error.response.data) 
-              : error.response.data;
+            const errorData =
+              typeof error.response.data === "string"
+                ? JSON.parse(error.response.data)
+                : error.response.data;
             if (errorData.message) {
               errorMessage += ` - ${errorData.message}`;
             }
@@ -1288,23 +1410,27 @@ const EditorDiagrama = () => {
             // Si no se puede parsear, usar el mensaje genérico
           }
         }
-      } else if (error.code === 'ERR_NETWORK' || (error.request && error.code !== 'ECONNABORTED')) {
+      } else if (
+        error.code === "ERR_NETWORK" ||
+        (error.request && error.code !== "ECONNABORTED")
+      ) {
         // Error de red específico (ERR_NETWORK, ERR_CONNECTION_REFUSED)
-        errorMessage = `Error de conexión al intentar generar el proyecto Spring Boot.\n\n` +
+        errorMessage =
+          `Error de conexión al intentar generar el proyecto Spring Boot.\n\n` +
           `El endpoint /api/openapi/generate-backend/${id} no está disponible o el servidor lo está rechazando.\n\n` +
           `Posibles causas:\n` +
           `- El endpoint no está implementado en el backend\n` +
           `- El servidor backend no está escuchando en ${API_CONFIG.BASE_URL}\n` +
           `- Problema de configuración del servidor o firewall\n\n` +
           `Verifica en el backend que la ruta POST /api/openapi/generate-backend/:id esté configurada correctamente.`;
-      } else if (error.code === 'ECONNABORTED') {
+      } else if (error.code === "ECONNABORTED") {
         // Timeout
         errorMessage = `La generación del proyecto tomó demasiado tiempo (timeout). El proceso puede estar tardando más de lo esperado.`;
       } else {
         // Error al configurar la petición o error desconocido
-        errorMessage += error.message || 'Error desconocido';
+        errorMessage += error.message || "Error desconocido";
       }
-      
+
       setExportError(errorMessage);
       setJdlContent(null);
       setZipDownloadUrl(null);
@@ -1316,78 +1442,85 @@ const EditorDiagrama = () => {
 
   // Función para generar proyecto Flutter
   const generateFlutterProject = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     setExportError(null);
     setJdlContent(null);
     setZipDownloadUrl(null);
     setLoading(true);
-    
+
     try {
-      const response = await fetch(API_CONFIG.getUrl(`/api/openapi/generate-flutter/${id}`), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        API_CONFIG.getUrl(`/api/openapi/generate-flutter/${id}`),
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
-      
+      );
+
       if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+        throw new Error(
+          `Error HTTP: ${response.status} - ${response.statusText}`
+        );
       }
-      
+
       // Verificar el tipo de contenido de la respuesta
-      const contentType = response.headers.get('content-type');
-      
-      if (contentType && contentType.includes('application/zip')) {
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/zip")) {
         // Si es un ZIP, manejarlo como blob
         const blob = await response.blob();
         const zipUrl = window.URL.createObjectURL(blob);
         setZipDownloadUrl(zipUrl);
-        setJdlContent('Proyecto Flutter generado exitosamente');
+        setJdlContent("Proyecto Flutter generado exitosamente");
         setExportError(null);
-        
+
         // Descargar automáticamente el ZIP
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = zipUrl;
-        link.download = `${titulo || 'diagrama'}-flutter-project.zip`;
+        link.download = `${titulo || "diagrama"}-flutter-project.zip`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        alert('¡Proyecto Flutter generado y descargado exitosamente!');
-      } else if (contentType && contentType.includes('application/json')) {
+
+        alert("¡Proyecto Flutter generado y descargado exitosamente!");
+      } else if (contentType && contentType.includes("application/json")) {
         // Si es JSON, manejarlo normalmente
         const result = await response.json();
-        
+
         if (result.success) {
-          setJdlContent('Proyecto Flutter generado exitosamente');
-          
+          setJdlContent("Proyecto Flutter generado exitosamente");
+
           if (result.zipUrl) {
             setZipDownloadUrl(result.zipUrl);
-            
+
             // Descargar automáticamente el ZIP
-            const link = document.createElement('a');
+            const link = document.createElement("a");
             link.href = result.zipUrl;
-            link.download = `${titulo || 'diagrama'}-flutter-project.zip`;
+            link.download = `${titulo || "diagrama"}-flutter-project.zip`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
           }
-          
+
           setExportError(null);
-          alert('¡Proyecto Flutter generado exitosamente!');
+          alert("¡Proyecto Flutter generado exitosamente!");
         } else {
-          setExportError(result.message || 'No se pudo generar el proyecto Flutter.');
+          setExportError(
+            result.message || "No se pudo generar el proyecto Flutter."
+          );
           setJdlContent(null);
           setZipDownloadUrl(null);
         }
       }
     } catch (error) {
-      console.error('Error generando proyecto Flutter:', error);
-      setExportError('Error generando proyecto Flutter: ' + error.message);
+      console.error("Error generando proyecto Flutter:", error);
+      setExportError("Error generando proyecto Flutter: " + error.message);
       setJdlContent(null);
       setZipDownloadUrl(null);
-      alert('Error al generar el proyecto Flutter: ' + error.message);
+      alert("Error al generar el proyecto Flutter: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -1395,84 +1528,97 @@ const EditorDiagrama = () => {
 
   // Función para generar proyecto Full-Stack (Backend + Frontend)
   const generateFullStackProject = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     setExportError(null);
     setJdlContent(null);
     setZipDownloadUrl(null);
     setLoading(true);
-    
+
     try {
       // Puedes solicitar el puerto del backend al usuario (opcional)
-      const backendPort = prompt('Ingresa el puerto del backend (por defecto 8080):', '8080') || '8080';
-      
-      const response = await fetch(API_CONFIG.getUrl(`/api/openapi/generate-fullstack/${id}`), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          backendPort: parseInt(backendPort)
-        })
-      });
-      
+      const backendPort =
+        prompt("Ingresa el puerto del backend (por defecto 8080):", "8080") ||
+        "8080";
+
+      const response = await fetch(
+        API_CONFIG.getUrl(`/api/openapi/generate-fullstack/${id}`),
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            backendPort: parseInt(backendPort),
+          }),
+        }
+      );
+
       if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+        throw new Error(
+          `Error HTTP: ${response.status} - ${response.statusText}`
+        );
       }
-      
+
       // Verificar el tipo de contenido de la respuesta
-      const contentType = response.headers.get('content-type');
-      
-      if (contentType && contentType.includes('application/zip')) {
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/zip")) {
         // Si es un ZIP, manejarlo como blob
         const blob = await response.blob();
         const zipUrl = window.URL.createObjectURL(blob);
         setZipDownloadUrl(zipUrl);
-        setJdlContent('Proyecto Full-Stack generado exitosamente (Backend Spring Boot + Frontend Flutter)');
+        setJdlContent(
+          "Proyecto Full-Stack generado exitosamente (Backend Spring Boot + Frontend Flutter)"
+        );
         setExportError(null);
-        
+
         // Descargar automáticamente el ZIP
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = zipUrl;
-        link.download = `${titulo || 'diagrama'}-fullstack-project.zip`;
+        link.download = `${titulo || "diagrama"}-fullstack-project.zip`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        alert('¡Proyecto Full-Stack generado y descargado exitosamente!\n\nIncluye:\n- Backend Spring Boot\n- Frontend Flutter\n- Scripts de ejecución');
-      } else if (contentType && contentType.includes('application/json')) {
+
+        alert(
+          "¡Proyecto Full-Stack generado y descargado exitosamente!\n\nIncluye:\n- Backend Spring Boot\n- Frontend Flutter\n- Scripts de ejecución"
+        );
+      } else if (contentType && contentType.includes("application/json")) {
         // Si es JSON, manejarlo normalmente
         const result = await response.json();
-        
+
         if (result.success) {
-          setJdlContent('Proyecto Full-Stack generado exitosamente');
-          
+          setJdlContent("Proyecto Full-Stack generado exitosamente");
+
           if (result.zipUrl) {
             setZipDownloadUrl(result.zipUrl);
-            
+
             // Descargar automáticamente el ZIP
-            const link = document.createElement('a');
+            const link = document.createElement("a");
             link.href = result.zipUrl;
-            link.download = `${titulo || 'diagrama'}-fullstack-project.zip`;
+            link.download = `${titulo || "diagrama"}-fullstack-project.zip`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
           }
-          
+
           setExportError(null);
-          alert('¡Proyecto Full-Stack generado exitosamente!');
+          alert("¡Proyecto Full-Stack generado exitosamente!");
         } else {
-          setExportError(result.message || 'No se pudo generar el proyecto Full-Stack.');
+          setExportError(
+            result.message || "No se pudo generar el proyecto Full-Stack."
+          );
           setJdlContent(null);
           setZipDownloadUrl(null);
         }
       }
     } catch (error) {
-      console.error('Error generando proyecto Full-Stack:', error);
-      setExportError('Error generando proyecto Full-Stack: ' + error.message);
+      console.error("Error generando proyecto Full-Stack:", error);
+      setExportError("Error generando proyecto Full-Stack: " + error.message);
       setJdlContent(null);
       setZipDownloadUrl(null);
-      alert('Error al generar el proyecto Full-Stack: ' + error.message);
+      alert("Error al generar el proyecto Full-Stack: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -1481,10 +1627,10 @@ const EditorDiagrama = () => {
   // Función para descargar el JDL
   const downloadJDL = () => {
     if (!jdlContent) return;
-    
-    const blob = new Blob([jdlContent], { type: 'text/plain' });
+
+    const blob = new Blob([jdlContent], { type: "text/plain" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `diagrama-${id}.jdl`;
     document.body.appendChild(a);
@@ -1496,8 +1642,8 @@ const EditorDiagrama = () => {
   // Función para descargar el ZIP del proyecto Spring Boot
   const downloadSpringBootProject = () => {
     if (!zipDownloadUrl) return;
-    
-    const a = document.createElement('a');
+
+    const a = document.createElement("a");
     a.href = zipDownloadUrl;
     a.download = `spring-boot-project-${id}.zip`;
     document.body.appendChild(a);
@@ -1511,148 +1657,168 @@ const EditorDiagrama = () => {
   // Función para copiar al portapapeles
   const copyToClipboard = async () => {
     if (!jdlContent) return;
-    
+
     try {
       await navigator.clipboard.writeText(jdlContent);
-      alert('JDL copiado al portapapeles!');
+      alert("JDL copiado al portapapeles!");
     } catch (err) {
-      console.error('Error copiando al portapapeles:', err);
-      alert('No se pudo copiar al portapapeles');
+      console.error("Error copiando al portapapeles:", err);
+      alert("No se pudo copiar al portapapeles");
     }
   };
 
   // Funciones mejoradas para crear relaciones
   const createComposicion = (sourceClass, targetClass) => {
-      const newRelation = {
-        id: `rel-${Date.now()}`,
+    const newRelation = {
+      id: `rel-${Date.now()}`,
       source: sourceClass.id,
-        target: targetClass.id,
-        type: 'Composición',
-      multiplicidadOrigen: '1',
-      multiplicidadDestino: '0..*',
-      marker: 'diamondFilled'
-      };
-  
-      setRelations((prevRelations) => [...prevRelations, newRelation]);
-    
+      target: targetClass.id,
+      type: "Composición",
+      multiplicidadOrigen: "1",
+      multiplicidadDestino: "0..*",
+      marker: "diamondFilled",
+    };
+
+    setRelations((prevRelations) => [...prevRelations, newRelation]);
+
     if (socketRef.current) {
-      socketRef.current.emit('add-relation', { roomId: id, newRelation });
+      socketRef.current.emit("add-relation", { roomId: id, newRelation });
     }
-    
-    console.log('Composición creada exitosamente');
+
+    console.log("Composición creada exitosamente");
   };
 
   // Función agregarComposicion removida - se usa createComposicion directamente
 
   const createAgregacion = (sourceClass, targetClass) => {
-      const newRelation = {
-        id: `rel-${Date.now()}`,
+    const newRelation = {
+      id: `rel-${Date.now()}`,
       source: sourceClass.id,
-        target: targetClass.id,
-        type: 'Agregación',
-      multiplicidadOrigen: '1',
-      multiplicidadDestino: '0..*',
-      marker: 'diamondEmpty',
-      };
-  
-      setRelations((prevRelations) => [...prevRelations, newRelation]);
-    
+      target: targetClass.id,
+      type: "Agregación",
+      multiplicidadOrigen: "1",
+      multiplicidadDestino: "0..*",
+      marker: "diamondEmpty",
+    };
+
+    setRelations((prevRelations) => [...prevRelations, newRelation]);
+
     if (socketRef.current) {
-      socketRef.current.emit('add-relation', { roomId: id, newRelation });
+      socketRef.current.emit("add-relation", { roomId: id, newRelation });
     }
-    
-    console.log('Agregación creada exitosamente');
+
+    console.log("Agregación creada exitosamente");
   };
 
   // Función agregarAgregacion removida - se usa createAgregacion directamente
 
   const createGeneralizacion = (sourceClass, targetClass) => {
-      const newRelation = {
-        id: `rel-${Date.now()}`,
+    const newRelation = {
+      id: `rel-${Date.now()}`,
       source: sourceClass.id,
-        target: targetClass.id,
-        type: 'Generalización',
-      multiplicidadOrigen: '',
-      multiplicidadDestino: '',
-      marker: 'triangle'
-      };
-  
-      setRelations((prevRelations) => [...prevRelations, newRelation]);
-    
+      target: targetClass.id,
+      type: "Generalización",
+      multiplicidadOrigen: "",
+      multiplicidadDestino: "",
+      marker: "triangle",
+    };
+
+    setRelations((prevRelations) => [...prevRelations, newRelation]);
+
     if (socketRef.current) {
-      socketRef.current.emit('add-relation', { roomId: id, newRelation });
+      socketRef.current.emit("add-relation", { roomId: id, newRelation });
     }
-    
-    console.log('Generalización creada exitosamente');
+
+    console.log("Generalización creada exitosamente");
   };
 
   // Función agregarGeneralizacion removida - se usa createGeneralizacion directamente
 
   const createMuchosAMuchos = (sourceClass, targetClass) => {
-      const classIntermediaId = `class-${Date.now()}`;
-      const classIntermedia = {
-        id: classIntermediaId,
+    const classIntermediaId = `class-${Date.now()}`;
+    const classIntermedia = {
+      id: classIntermediaId,
       name: `${sourceClass.name}_${targetClass.name}`,
       x: (sourceClass.x + targetClass.x) / 2,
       y: (sourceClass.y + targetClass.y) / 2 - 50,
-      attributes: [`${sourceClass.name.toLowerCase()}_id (FK)`, `${targetClass.name.toLowerCase()}_id (FK)`],
-        methods: []
-      };
-    
-      setClasses((prevClasses) => [...prevClasses, classIntermedia]);
-  
-      const relation1 = {
-        id: `rel-${Date.now()}-1`,
+      attributes: [
+        `${sourceClass.name.toLowerCase()}_id (FK)`,
+        `${targetClass.name.toLowerCase()}_id (FK)`,
+      ],
+      methods: [],
+    };
+
+    setClasses((prevClasses) => [...prevClasses, classIntermedia]);
+
+    const relation1 = {
+      id: `rel-${Date.now()}-1`,
       source: sourceClass.id,
-        target: classIntermediaId,
-        type: 'Uno a Muchos',
-        multiplicidadOrigen: '1',
-        multiplicidadDestino: '*'
-      };
-      const relation2 = {
-        id: `rel-${Date.now()}-2`,
-        source: targetClass.id,
-        target: classIntermediaId,
-        type: 'Uno a Muchos',
-        multiplicidadOrigen: '1',
-        multiplicidadDestino: '*'
-      };
-  
-      setRelations((prevRelations) => [...prevRelations, relation1, relation2]);
-    
+      target: classIntermediaId,
+      type: "Uno a Muchos",
+      multiplicidadOrigen: "1",
+      multiplicidadDestino: "*",
+    };
+    const relation2 = {
+      id: `rel-${Date.now()}-2`,
+      source: targetClass.id,
+      target: classIntermediaId,
+      type: "Uno a Muchos",
+      multiplicidadOrigen: "1",
+      multiplicidadDestino: "*",
+    };
+
+    setRelations((prevRelations) => [...prevRelations, relation1, relation2]);
+
     if (socketRef.current) {
-      socketRef.current.emit('add-class', { roomId: id, newClass: classIntermedia });
-      socketRef.current.emit('add-relation', { roomId: id, newRelation: relation1 });
-      socketRef.current.emit('add-relation', { roomId: id, newRelation: relation2 });
+      socketRef.current.emit("add-class", {
+        roomId: id,
+        newClass: classIntermedia,
+      });
+      socketRef.current.emit("add-relation", {
+        roomId: id,
+        newRelation: relation1,
+      });
+      socketRef.current.emit("add-relation", {
+        roomId: id,
+        newRelation: relation2,
+      });
     }
-    
-    console.log('Relación Muchos a Muchos creada exitosamente con clase intermedia');
+
+    console.log(
+      "Relación Muchos a Muchos creada exitosamente con clase intermedia"
+    );
   };
 
   // Función agregarMuchosAMuchos removida - se usa createMuchosAMuchos directamente
 
   const createAsociacion = (sourceClass, targetClass) => {
-    const multiplicidadOrigen = prompt("Ingrese la multiplicidad del origen", "1");
-    const multiplicidadDestino = prompt("Ingrese la multiplicidad del destino", "1..*");
+    const multiplicidadOrigen = prompt(
+      "Ingrese la multiplicidad del origen",
+      "1"
+    );
+    const multiplicidadDestino = prompt(
+      "Ingrese la multiplicidad del destino",
+      "1..*"
+    );
 
     if (multiplicidadOrigen && multiplicidadDestino) {
       const newRelation = {
         id: `rel-${Date.now()}`,
         source: sourceClass.id,
         target: targetClass.id,
-        type: 'Asociación',
+        type: "Asociación",
         multiplicidadOrigen,
         multiplicidadDestino,
       };
-      
+
       setRelations((prevRelations) => [...prevRelations, newRelation]);
 
       if (socketRef.current) {
-        socketRef.current.emit('add-relation', { roomId: id, newRelation });
+        socketRef.current.emit("add-relation", { roomId: id, newRelation });
       }
-      
-      console.log('Asociación creada exitosamente');
-      } else {
+
+      console.log("Asociación creada exitosamente");
+    } else {
       alert("Debe ingresar las multiplicidades.");
       // Si cancela, no resetear para permitir reintentar
       return false;
@@ -1663,125 +1829,131 @@ const EditorDiagrama = () => {
   // Función agregarRelacion removida - se usa createAsociacion directamente
 
   // Función para generar UUID único
-const generateUUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+  const generateUUID = () => {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
       const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      const v = c === "x" ? r : (r & 0x3) | 0x8;
       return v.toString(16);
-  });
-};
+    });
+  };
 
   // Función para exportar a XMI
-const exportarXMI = () => {
-  const xmlDoc = document.implementation.createDocument(null, null, null);
-  const xmiElement = xmlDoc.createElement('xmi:XMI');
-  xmiElement.setAttribute('xmi:version', '2.1');
-  xmiElement.setAttribute('xmlns:xmi', 'http://schema.omg.org/spec/XMI/2.1');
-  xmiElement.setAttribute('xmlns:uml', 'http://schema.omg.org/spec/UML/2.1');
+  const exportarXMI = () => {
+    const xmlDoc = document.implementation.createDocument(null, null, null);
+    const xmiElement = xmlDoc.createElement("xmi:XMI");
+    xmiElement.setAttribute("xmi:version", "2.1");
+    xmiElement.setAttribute("xmlns:xmi", "http://schema.omg.org/spec/XMI/2.1");
+    xmiElement.setAttribute("xmlns:uml", "http://schema.omg.org/spec/UML/2.1");
 
-  const xmiDocumentation = xmlDoc.createElement('xmi:Documentation');
-  xmiDocumentation.setAttribute('exporter', 'Tu Aplicación');
-  xmiDocumentation.setAttribute('exporterVersion', '1.0');
-  xmiElement.appendChild(xmiDocumentation);
+    const xmiDocumentation = xmlDoc.createElement("xmi:Documentation");
+    xmiDocumentation.setAttribute("exporter", "Tu Aplicación");
+    xmiDocumentation.setAttribute("exporterVersion", "1.0");
+    xmiElement.appendChild(xmiDocumentation);
 
-  const umlModel = xmlDoc.createElement('uml:Model');
-  umlModel.setAttribute('xmi:type', 'uml:Model');
-  umlModel.setAttribute('name', titulo || 'ModeloExportado');
-  umlModel.setAttribute('visibility', 'public');
+    const umlModel = xmlDoc.createElement("uml:Model");
+    umlModel.setAttribute("xmi:type", "uml:Model");
+    umlModel.setAttribute("name", titulo || "ModeloExportado");
+    umlModel.setAttribute("visibility", "public");
 
-  const umlPackage = xmlDoc.createElement('packagedElement');
-  umlPackage.setAttribute('xmi:type', 'uml:Package');
-  umlPackage.setAttribute('xmi:id', `pkg_${generateUUID()}`);
-  umlPackage.setAttribute('name', 'PaqueteExportado');
-  umlPackage.setAttribute('visibility', 'public');
+    const umlPackage = xmlDoc.createElement("packagedElement");
+    umlPackage.setAttribute("xmi:type", "uml:Package");
+    umlPackage.setAttribute("xmi:id", `pkg_${generateUUID()}`);
+    umlPackage.setAttribute("name", "PaqueteExportado");
+    umlPackage.setAttribute("visibility", "public");
 
-  // Agregar clases
-  classes.forEach((cls) => {
-    const classElement = xmlDoc.createElement('packagedElement');
-    classElement.setAttribute('xmi:type', 'uml:Class');
-    classElement.setAttribute('xmi:id', cls.id);
-    classElement.setAttribute('name', cls.name);
-    classElement.setAttribute('visibility', 'public');
+    // Agregar clases
+    classes.forEach((cls) => {
+      const classElement = xmlDoc.createElement("packagedElement");
+      classElement.setAttribute("xmi:type", "uml:Class");
+      classElement.setAttribute("xmi:id", cls.id);
+      classElement.setAttribute("name", cls.name);
+      classElement.setAttribute("visibility", "public");
 
-    // Agregar atributos
-    cls.attributes.forEach((attr) => {
-      const attributeElement = xmlDoc.createElement('ownedAttribute');
-      attributeElement.setAttribute('xmi:type', 'uml:Property');
-      attributeElement.setAttribute('xmi:id', `attr_${generateUUID()}`);
-      attributeElement.setAttribute('name', attr);
-      attributeElement.setAttribute('visibility', 'private');
-      classElement.appendChild(attributeElement);
+      // Agregar atributos
+      cls.attributes.forEach((attr) => {
+        const attributeElement = xmlDoc.createElement("ownedAttribute");
+        attributeElement.setAttribute("xmi:type", "uml:Property");
+        attributeElement.setAttribute("xmi:id", `attr_${generateUUID()}`);
+        attributeElement.setAttribute("name", attr);
+        attributeElement.setAttribute("visibility", "private");
+        classElement.appendChild(attributeElement);
+      });
+
+      // Agregar métodos
+      cls.methods.forEach((method) => {
+        const methodElement = xmlDoc.createElement("ownedOperation");
+        methodElement.setAttribute("xmi:type", "uml:Operation");
+        methodElement.setAttribute("xmi:id", `op_${generateUUID()}`);
+        methodElement.setAttribute("name", method);
+        methodElement.setAttribute("visibility", "public");
+        classElement.appendChild(methodElement);
+      });
+
+      umlPackage.appendChild(classElement);
     });
-
-    // Agregar métodos
-    cls.methods.forEach((method) => {
-      const methodElement = xmlDoc.createElement('ownedOperation');
-      methodElement.setAttribute('xmi:type', 'uml:Operation');
-      methodElement.setAttribute('xmi:id', `op_${generateUUID()}`);
-      methodElement.setAttribute('name', method);
-      methodElement.setAttribute('visibility', 'public');
-      classElement.appendChild(methodElement);
-    });
-
-    umlPackage.appendChild(classElement);
-  });
 
     // Agregar relaciones
-  relations.forEach((rel) => {
-    if (rel.type === 'Association Class') {
-      const associationClassElement = xmlDoc.createElement('packagedElement');
-      associationClassElement.setAttribute('xmi:type', 'uml:AssociationClass');
-      associationClassElement.setAttribute('xmi:id', rel.id);
-        associationClassElement.setAttribute('name', 'ClaseIntermedia');
+    relations.forEach((rel) => {
+      if (rel.type === "Association Class") {
+        const associationClassElement = xmlDoc.createElement("packagedElement");
+        associationClassElement.setAttribute(
+          "xmi:type",
+          "uml:AssociationClass"
+        );
+        associationClassElement.setAttribute("xmi:id", rel.id);
+        associationClassElement.setAttribute("name", "ClaseIntermedia");
 
-      const ownedEnd1 = xmlDoc.createElement('ownedEnd');
-      ownedEnd1.setAttribute('xmi:type', 'uml:Property');
-      ownedEnd1.setAttribute('xmi:id', `end1_${generateUUID()}`);
-      ownedEnd1.setAttribute('type', rel.source);
-      associationClassElement.appendChild(ownedEnd1);
+        const ownedEnd1 = xmlDoc.createElement("ownedEnd");
+        ownedEnd1.setAttribute("xmi:type", "uml:Property");
+        ownedEnd1.setAttribute("xmi:id", `end1_${generateUUID()}`);
+        ownedEnd1.setAttribute("type", rel.source);
+        associationClassElement.appendChild(ownedEnd1);
 
-      const ownedEnd2 = xmlDoc.createElement('ownedEnd');
-      ownedEnd2.setAttribute('xmi:type', 'uml:Property');
-      ownedEnd2.setAttribute('xmi:id', `end2_${generateUUID()}`);
-      ownedEnd2.setAttribute('type', rel.target);
-      associationClassElement.appendChild(ownedEnd2);
+        const ownedEnd2 = xmlDoc.createElement("ownedEnd");
+        ownedEnd2.setAttribute("xmi:type", "uml:Property");
+        ownedEnd2.setAttribute("xmi:id", `end2_${generateUUID()}`);
+        ownedEnd2.setAttribute("type", rel.target);
+        associationClassElement.appendChild(ownedEnd2);
 
-      umlPackage.appendChild(associationClassElement);
-    } else {
-      const associationElement = xmlDoc.createElement('packagedElement');
-      associationElement.setAttribute('xmi:type', 'uml:Association');
-      associationElement.setAttribute('xmi:id', rel.id);
-      associationElement.setAttribute('visibility', 'public');
+        umlPackage.appendChild(associationClassElement);
+      } else {
+        const associationElement = xmlDoc.createElement("packagedElement");
+        associationElement.setAttribute("xmi:type", "uml:Association");
+        associationElement.setAttribute("xmi:id", rel.id);
+        associationElement.setAttribute("visibility", "public");
 
-      const ownedEnd1 = xmlDoc.createElement('ownedEnd');
-      ownedEnd1.setAttribute('xmi:type', 'uml:Property');
-      ownedEnd1.setAttribute('xmi:id', `end1_${generateUUID()}`);
-      ownedEnd1.setAttribute('aggregation', rel.type === 'Composición' ? 'composite' : 'none');
-      ownedEnd1.setAttribute('type', rel.source);
-      associationElement.appendChild(ownedEnd1);
+        const ownedEnd1 = xmlDoc.createElement("ownedEnd");
+        ownedEnd1.setAttribute("xmi:type", "uml:Property");
+        ownedEnd1.setAttribute("xmi:id", `end1_${generateUUID()}`);
+        ownedEnd1.setAttribute(
+          "aggregation",
+          rel.type === "Composición" ? "composite" : "none"
+        );
+        ownedEnd1.setAttribute("type", rel.source);
+        associationElement.appendChild(ownedEnd1);
 
-      const ownedEnd2 = xmlDoc.createElement('ownedEnd');
-      ownedEnd2.setAttribute('xmi:type', 'uml:Property');
-      ownedEnd2.setAttribute('xmi:id', `end2_${generateUUID()}`);
-      ownedEnd2.setAttribute('aggregation', 'none');
-      ownedEnd2.setAttribute('type', rel.target);
-      associationElement.appendChild(ownedEnd2);
+        const ownedEnd2 = xmlDoc.createElement("ownedEnd");
+        ownedEnd2.setAttribute("xmi:type", "uml:Property");
+        ownedEnd2.setAttribute("xmi:id", `end2_${generateUUID()}`);
+        ownedEnd2.setAttribute("aggregation", "none");
+        ownedEnd2.setAttribute("type", rel.target);
+        associationElement.appendChild(ownedEnd2);
 
-      umlPackage.appendChild(associationElement);
-    }
-  });
+        umlPackage.appendChild(associationElement);
+      }
+    });
 
-  umlModel.appendChild(umlPackage);
-  xmiElement.appendChild(umlModel);
+    umlModel.appendChild(umlPackage);
+    xmiElement.appendChild(umlModel);
 
-  const serializer = new XMLSerializer();
-  const xmiString = serializer.serializeToString(xmiElement);
-  const blob = new Blob([xmiString], { type: 'application/xml' });
+    const serializer = new XMLSerializer();
+    const xmiString = serializer.serializeToString(xmiElement);
+    const blob = new Blob([xmiString], { type: "application/xml" });
     const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${titulo || 'diagrama'}.xmi`;
-  link.click();
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${titulo || "diagrama"}.xmi`;
+    link.click();
     URL.revokeObjectURL(url);
   };
 
@@ -1804,29 +1976,30 @@ const exportarXMI = () => {
       alert("No se seleccionó ningún archivo");
       return;
     }
-  
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const xmiText = e.target.result;
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmiText, "application/xml");
-  
+
       const importedClasses = [];
       const importedRelations = [];
       const classIdMap = new Map(); // Mapeo de IDs XMI a IDs internos
-  
+
       console.log("Iniciando importación XMI mejorada...");
-  
+
       // 1. Extraer clases regulares (uml:Class)
       const classElements = xmlDoc.getElementsByTagName("packagedElement");
       for (let i = 0; i < classElements.length; i++) {
         const classEl = classElements[i];
         const xmiType = classEl.getAttribute("xmi:type");
-        
+
         if (xmiType === "uml:Class") {
           const attributes = [];
-          const attributeElements = classEl.getElementsByTagName("ownedAttribute");
-          
+          const attributeElements =
+            classEl.getElementsByTagName("ownedAttribute");
+
           for (let j = 0; j < attributeElements.length; j++) {
             const attrEl = attributeElements[j];
             const attributeName = attrEl.getAttribute("name");
@@ -1834,7 +2007,7 @@ const exportarXMI = () => {
               attributes.push(attributeName);
             }
           }
-  
+
           const classObj = {
             id: classEl.getAttribute("xmi:id"),
             name: classEl.getAttribute("name") || "ClaseSinNombre",
@@ -1843,22 +2016,23 @@ const exportarXMI = () => {
             attributes,
             methods: [],
           };
-          
+
           classIdMap.set(classObj.id, classObj.id);
           importedClasses.push(classObj);
           console.log(`Clase importada: ${classObj.name} (${classObj.id})`);
         }
       }
-  
+
       // 2. Extraer AssociationClass (clases intermedias)
       for (let i = 0; i < classElements.length; i++) {
         const classEl = classElements[i];
         const xmiType = classEl.getAttribute("xmi:type");
-        
+
         if (xmiType === "uml:AssociationClass") {
           const attributes = [];
-          const attributeElements = classEl.getElementsByTagName("ownedAttribute");
-          
+          const attributeElements =
+            classEl.getElementsByTagName("ownedAttribute");
+
           for (let j = 0; j < attributeElements.length; j++) {
             const attrEl = attributeElements[j];
             const attributeName = attrEl.getAttribute("name");
@@ -1866,7 +2040,7 @@ const exportarXMI = () => {
               attributes.push(attributeName);
             }
           }
-  
+
           const classObj = {
             id: classEl.getAttribute("xmi:id"),
             name: classEl.getAttribute("name") || "ClaseIntermedia",
@@ -1875,37 +2049,45 @@ const exportarXMI = () => {
             attributes,
             methods: [],
           };
-          
+
           classIdMap.set(classObj.id, classObj.id);
           importedClasses.push(classObj);
-          console.log(`Clase intermedia importada: ${classObj.name} (${classObj.id})`);
+          console.log(
+            `Clase intermedia importada: ${classObj.name} (${classObj.id})`
+          );
         }
       }
-  
+
       // 3. Extraer relaciones de asociación - MEJORADO
-      console.log(`Procesando ${classElements.length} elementos para relaciones...`);
+      console.log(
+        `Procesando ${classElements.length} elementos para relaciones...`
+      );
       let associationCount = 0;
-      
+
       for (let i = 0; i < classElements.length; i++) {
         const classEl = classElements[i];
         const xmiType = classEl.getAttribute("xmi:type");
-        
+
         if (xmiType === "uml:Association") {
           associationCount++;
-          console.log(`Procesando asociación ${associationCount}: ${classEl.getAttribute("xmi:id")}`);
+          console.log(
+            `Procesando asociación ${associationCount}: ${classEl.getAttribute(
+              "xmi:id"
+            )}`
+          );
           const ownedEnds = classEl.getElementsByTagName("ownedEnd");
           console.log(`   - ownedEnds encontrados: ${ownedEnds.length}`);
-          
+
           if (ownedEnds.length >= 2) {
             // Buscar los ends correctos basándose en los memberEnd
             const memberEnds = classEl.getElementsByTagName("memberEnd");
             let sourceEnd = null;
             let targetEnd = null;
-            
+
             if (memberEnds.length >= 2) {
               const sourceMemberId = memberEnds[0].getAttribute("xmi:idref");
               const targetMemberId = memberEnds[1].getAttribute("xmi:idref");
-              
+
               // Encontrar los ownedEnd correspondientes
               for (let j = 0; j < ownedEnds.length; j++) {
                 const endId = ownedEnds[j].getAttribute("xmi:id");
@@ -1920,12 +2102,12 @@ const exportarXMI = () => {
               sourceEnd = ownedEnds[0];
               targetEnd = ownedEnds[1];
             }
-            
+
             if (sourceEnd && targetEnd) {
               // Buscar el tipo de diferentes maneras
               let sourceId = sourceEnd.getAttribute("type");
               let targetId = targetEnd.getAttribute("type");
-              
+
               // Si no encuentra type, buscar en elementos hijo
               if (!sourceId) {
                 const sourceTypeEl = sourceEnd.querySelector("type");
@@ -1933,28 +2115,34 @@ const exportarXMI = () => {
                   sourceId = sourceTypeEl.getAttribute("xmi:idref");
                 }
               }
-              
+
               if (!targetId) {
                 const targetTypeEl = targetEnd.querySelector("type");
                 if (targetTypeEl) {
                   targetId = targetTypeEl.getAttribute("xmi:idref");
                 }
               }
-              
-              const aggregation = sourceEnd.getAttribute("aggregation") || "none";
-              
+
+              const aggregation =
+                sourceEnd.getAttribute("aggregation") || "none";
+
               console.log(`Procesando relación:`);
               console.log(`   - sourceEnd HTML:`, sourceEnd.outerHTML);
               console.log(`   - targetEnd HTML:`, targetEnd.outerHTML);
               console.log(`   - sourceId: ${sourceId}`);
               console.log(`   - targetId: ${targetId}`);
               console.log(`   - aggregation: ${aggregation}`);
-              
-              if (sourceId && targetId && classIdMap.has(sourceId) && classIdMap.has(targetId)) {
+
+              if (
+                sourceId &&
+                targetId &&
+                classIdMap.has(sourceId) &&
+                classIdMap.has(targetId)
+              ) {
                 let relationType = "Asociación";
                 let multiplicidadOrigen = "1";
                 let multiplicidadDestino = "1";
-                
+
                 // Determinar tipo de relación basado en aggregation
                 if (aggregation === "composite") {
                   relationType = "Composición";
@@ -1965,7 +2153,7 @@ const exportarXMI = () => {
                   multiplicidadOrigen = "1";
                   multiplicidadDestino = "0..*";
                 }
-                
+
                 const relationObj = {
                   id: classEl.getAttribute("xmi:id"),
                   source: sourceId,
@@ -1974,66 +2162,92 @@ const exportarXMI = () => {
                   multiplicidadOrigen,
                   multiplicidadDestino,
                 };
-                
+
                 importedRelations.push(relationObj);
-                console.log(`Relación importada: ${relationType} (${sourceId} → ${targetId})`);
+                console.log(
+                  `Relación importada: ${relationType} (${sourceId} → ${targetId})`
+                );
               } else {
-                console.log(`⚠️ Relación omitida: clases no encontradas (${sourceId}, ${targetId})`);
+                console.log(
+                  `⚠️ Relación omitida: clases no encontradas (${sourceId}, ${targetId})`
+                );
               }
             }
           } else {
-            console.log(`⚠️ Asociación ${associationCount} omitida: solo ${ownedEnds.length} ownedEnds (necesita 2)`);
+            console.log(
+              `⚠️ Asociación ${associationCount} omitida: solo ${ownedEnds.length} ownedEnds (necesita 2)`
+            );
             console.log(`   - Buscando ownedEnds en clases relacionadas...`);
-            
+
             // Buscar ownedEnds en las clases que referencian esta asociación
             const associationId = classEl.getAttribute("xmi:id");
             const relatedOwnedEnds = [];
-            
+
             // Buscar en todas las clases por ownedEnds que referencien esta asociación
             const seenOwnedEndIds = new Set();
             for (let j = 0; j < classElements.length; j++) {
               const classElement = classElements[j];
-              
+
               // Buscar en ownedEnds directos
-              const classOwnedEnds = classElement.getElementsByTagName("ownedEnd");
+              const classOwnedEnds =
+                classElement.getElementsByTagName("ownedEnd");
               for (let k = 0; k < classOwnedEnds.length; k++) {
                 const ownedEnd = classOwnedEnds[k];
                 const ownedEndId = ownedEnd.getAttribute("xmi:id");
-                
-                if (ownedEnd.getAttribute("association") === associationId && !seenOwnedEndIds.has(ownedEndId)) {
+
+                if (
+                  ownedEnd.getAttribute("association") === associationId &&
+                  !seenOwnedEndIds.has(ownedEndId)
+                ) {
                   seenOwnedEndIds.add(ownedEndId);
                   relatedOwnedEnds.push(ownedEnd);
-                  console.log(`   - Encontrado ownedEnd en clase ${classElement.getAttribute("name")}: ${ownedEndId}`);
+                  console.log(
+                    `   - Encontrado ownedEnd en clase ${classElement.getAttribute(
+                      "name"
+                    )}: ${ownedEndId}`
+                  );
                   console.log(`   - ownedEnd HTML:`, ownedEnd.outerHTML);
                 }
               }
-              
+
               // Buscar en atributos de clase que pueden ser ownedEnds
-              const classAttributes = classElement.getElementsByTagName("ownedAttribute");
+              const classAttributes =
+                classElement.getElementsByTagName("ownedAttribute");
               for (let k = 0; k < classAttributes.length; k++) {
                 const attribute = classAttributes[k];
                 const attributeId = attribute.getAttribute("xmi:id");
-                
-                if (attribute.getAttribute("association") === associationId && !seenOwnedEndIds.has(attributeId)) {
+
+                if (
+                  attribute.getAttribute("association") === associationId &&
+                  !seenOwnedEndIds.has(attributeId)
+                ) {
                   seenOwnedEndIds.add(attributeId);
                   relatedOwnedEnds.push(attribute);
-                  console.log(`   - Encontrado ownedAttribute en clase ${classElement.getAttribute("name")}: ${attributeId}`);
+                  console.log(
+                    `   - Encontrado ownedAttribute en clase ${classElement.getAttribute(
+                      "name"
+                    )}: ${attributeId}`
+                  );
                   console.log(`   - ownedAttribute HTML:`, attribute.outerHTML);
                 }
               }
             }
-            
-            console.log(`   - Total ownedEnds encontrados: ${relatedOwnedEnds.length}`);
-            
+
+            console.log(
+              `   - Total ownedEnds encontrados: ${relatedOwnedEnds.length}`
+            );
+
             if (relatedOwnedEnds.length >= 2) {
-              console.log(`   - Procesando con ${relatedOwnedEnds.length} ownedEnds encontrados en clases`);
+              console.log(
+                `   - Procesando con ${relatedOwnedEnds.length} ownedEnds encontrados en clases`
+              );
               const sourceEnd = relatedOwnedEnds[0];
               const targetEnd = relatedOwnedEnds[1];
-              
+
               // Buscar el tipo de diferentes maneras
               let sourceId = sourceEnd.getAttribute("type");
               let targetId = targetEnd.getAttribute("type");
-              
+
               // Si no encuentra type, buscar en elementos hijo
               if (!sourceId) {
                 const sourceTypeEl = sourceEnd.querySelector("type");
@@ -2041,52 +2255,76 @@ const exportarXMI = () => {
                   sourceId = sourceTypeEl.getAttribute("xmi:idref");
                 }
               }
-              
+
               if (!targetId) {
                 const targetTypeEl = targetEnd.querySelector("type");
                 if (targetTypeEl) {
                   targetId = targetTypeEl.getAttribute("xmi:idref");
                 }
               }
-              
-              const aggregation = sourceEnd.getAttribute("aggregation") || "none";
-              
+
+              const aggregation =
+                sourceEnd.getAttribute("aggregation") || "none";
+
               console.log(`   - sourceId: ${sourceId}`);
               console.log(`   - targetId: ${targetId}`);
               console.log(`   - aggregation: ${aggregation}`);
-              
+
               // Debug específico para la composición auto-empleados
-              if ((sourceId === "EAID_1018C124_0A6B_4c2f_9D5D_162B9D4613D3" && targetId === "EAID_2D645AEB_B784_4d5b_BFB9_DF6A841238F7") ||
-                  (sourceId === "EAID_2D645AEB_B784_4d5b_BFB9_DF6A841238F7" && targetId === "EAID_1018C124_0A6B_4c2f_9D5D_162B9D4613D3")) {
+              if (
+                (sourceId === "EAID_1018C124_0A6B_4c2f_9D5D_162B9D4613D3" &&
+                  targetId === "EAID_2D645AEB_B784_4d5b_BFB9_DF6A841238F7") ||
+                (sourceId === "EAID_2D645AEB_B784_4d5b_BFB9_DF6A841238F7" &&
+                  targetId === "EAID_1018C124_0A6B_4c2f_9D5D_162B9D4613D3")
+              ) {
                 console.log(`   - ESTA ES LA COMPOSICIÓN AUTO-EMPLEADOS!`);
-                console.log(`   - sourceEnd aggregation: ${sourceEnd.getAttribute("aggregation")}`);
-                console.log(`   - targetEnd aggregation: ${targetEnd.getAttribute("aggregation")}`);
+                console.log(
+                  `   - sourceEnd aggregation: ${sourceEnd.getAttribute(
+                    "aggregation"
+                  )}`
+                );
+                console.log(
+                  `   - targetEnd aggregation: ${targetEnd.getAttribute(
+                    "aggregation"
+                  )}`
+                );
               }
-              
-              if (sourceId && targetId && classIdMap.has(sourceId) && classIdMap.has(targetId)) {
+
+              if (
+                sourceId &&
+                targetId &&
+                classIdMap.has(sourceId) &&
+                classIdMap.has(targetId)
+              ) {
                 let relationType = "Asociación";
                 let multiplicidadOrigen = "1";
                 let multiplicidadDestino = "1";
-                
+
                 // Determinar tipo de relación basado en aggregation
                 const sourceAggregation = sourceEnd.getAttribute("aggregation");
                 const targetAggregation = targetEnd.getAttribute("aggregation");
-                
+
                 console.log(`   - sourceAggregation: ${sourceAggregation}`);
                 console.log(`   - targetAggregation: ${targetAggregation}`);
-                
+
                 // Determinar tipo y dirección de la relación
                 let finalSourceId = sourceId;
                 let finalTargetId = targetId;
-                
-                if (sourceAggregation === "composite" || targetAggregation === "composite") {
+
+                if (
+                  sourceAggregation === "composite" ||
+                  targetAggregation === "composite"
+                ) {
                   relationType = "Composición";
                   // En composición, el que tiene composite es el contenedor (target)
                   if (sourceAggregation === "composite") {
                     finalSourceId = targetId;
                     finalTargetId = sourceId;
                   }
-                } else if (sourceAggregation === "shared" || targetAggregation === "shared") {
+                } else if (
+                  sourceAggregation === "shared" ||
+                  targetAggregation === "shared"
+                ) {
                   relationType = "Agregación";
                   // En agregación, el que tiene shared es el contenedor (target)
                   if (sourceAggregation === "shared") {
@@ -2094,9 +2332,11 @@ const exportarXMI = () => {
                     finalTargetId = sourceId;
                   }
                 }
-                
-                console.log(`   - Dirección final: ${finalSourceId} → ${finalTargetId}`);
-                
+
+                console.log(
+                  `   - Dirección final: ${finalSourceId} → ${finalTargetId}`
+                );
+
                 const relationObj = {
                   id: associationId,
                   source: finalSourceId,
@@ -2105,37 +2345,56 @@ const exportarXMI = () => {
                   multiplicidadOrigen,
                   multiplicidadDestino,
                 };
-                
+
                 importedRelations.push(relationObj);
-                console.log(`Relación importada desde clases: ${relationType} (${finalSourceId} → ${finalTargetId})`);
+                console.log(
+                  `Relación importada desde clases: ${relationType} (${finalSourceId} → ${finalTargetId})`
+                );
               } else {
-                console.log(`⚠️ Relación desde clases omitida: clases no encontradas (${sourceId}, ${targetId})`);
+                console.log(
+                  `⚠️ Relación desde clases omitida: clases no encontradas (${sourceId}, ${targetId})`
+                );
               }
             } else {
-              console.log(`   - Solo ${relatedOwnedEnds.length} ownedEnds encontrados en clases (necesita 2)`);
-              console.log(`   - IDs de ownedEnds encontrados:`, relatedOwnedEnds.map(end => end.getAttribute("xmi:id")));
+              console.log(
+                `   - Solo ${relatedOwnedEnds.length} ownedEnds encontrados en clases (necesita 2)`
+              );
+              console.log(
+                `   - IDs de ownedEnds encontrados:`,
+                relatedOwnedEnds.map((end) => end.getAttribute("xmi:id"))
+              );
             }
           }
         }
       }
-      
+
       console.log(`Total de asociaciones procesadas: ${associationCount}`);
-  
+
       // 4. Extraer relaciones de generalización
-      const generalizationElements = xmlDoc.getElementsByTagName("generalization");
-      console.log(`Encontradas ${generalizationElements.length} generalizaciones`);
-      
+      const generalizationElements =
+        xmlDoc.getElementsByTagName("generalization");
+      console.log(
+        `Encontradas ${generalizationElements.length} generalizaciones`
+      );
+
       for (let i = 0; i < generalizationElements.length; i++) {
         const relationEl = generalizationElements[i];
         const sourceId = relationEl.getAttribute("specific");
         const targetId = relationEl.getAttribute("general");
-        
-        console.log(`Procesando generalización ${i + 1}: ${sourceId} → ${targetId}`);
+
+        console.log(
+          `Procesando generalización ${i + 1}: ${sourceId} → ${targetId}`
+        );
         console.log(`   - Elemento HTML:`, relationEl.outerHTML);
         console.log(`   - sourceId en mapa: ${classIdMap.has(sourceId)}`);
         console.log(`   - targetId en mapa: ${classIdMap.has(targetId)}`);
-  
-        if (sourceId && targetId && classIdMap.has(sourceId) && classIdMap.has(targetId)) {
+
+        if (
+          sourceId &&
+          targetId &&
+          classIdMap.has(sourceId) &&
+          classIdMap.has(targetId)
+        ) {
           const relationObj = {
             id: relationEl.getAttribute("xmi:id"),
             source: sourceId,
@@ -2147,18 +2406,25 @@ const exportarXMI = () => {
           importedRelations.push(relationObj);
           console.log(`Generalización importada: ${sourceId} → ${targetId}`);
         } else {
-          console.log(`⚠️ Generalización omitida: clases no encontradas (${sourceId}, ${targetId})`);
-          
+          console.log(
+            `⚠️ Generalización omitida: clases no encontradas (${sourceId}, ${targetId})`
+          );
+
           // Si falta sourceId, buscar en el elemento padre (clase)
           if (!sourceId && targetId) {
             const parentClass = relationEl.parentElement;
-            if (parentClass && parentClass.getAttribute("xmi:type") === "uml:Class") {
+            if (
+              parentClass &&
+              parentClass.getAttribute("xmi:type") === "uml:Class"
+            ) {
               const parentId = parentClass.getAttribute("xmi:id");
               console.log(`   - Buscando sourceId en clase padre: ${parentId}`);
-              
+
               if (classIdMap.has(parentId)) {
-                console.log(`   - Usando clase padre como sourceId: ${parentId}`);
-                
+                console.log(
+                  `   - Usando clase padre como sourceId: ${parentId}`
+                );
+
                 const relationObj = {
                   id: relationEl.getAttribute("xmi:id"),
                   source: parentId,
@@ -2167,39 +2433,47 @@ const exportarXMI = () => {
                   multiplicidadOrigen: "",
                   multiplicidadDestino: "",
                 };
-                
+
                 importedRelations.push(relationObj);
-                console.log(`Generalización importada desde clase padre: ${parentId} → ${targetId}`);
+                console.log(
+                  `Generalización importada desde clase padre: ${parentId} → ${targetId}`
+                );
               } else {
-                console.log(`   - Clase padre no encontrada en mapa: ${parentId}`);
+                console.log(
+                  `   - Clase padre no encontrada en mapa: ${parentId}`
+                );
               }
             }
           }
         }
       }
-  
+
       // 5. Procesar relaciones de AssociationClass - MEJORADO
       for (let i = 0; i < classElements.length; i++) {
         const classEl = classElements[i];
         const xmiType = classEl.getAttribute("xmi:type");
-        
+
         if (xmiType === "uml:AssociationClass") {
           const ownedEnds = classEl.getElementsByTagName("ownedEnd");
           const memberEnds = classEl.getElementsByTagName("memberEnd");
-          
-          console.log(`Procesando AssociationClass: ${classEl.getAttribute("name")} (${classEl.getAttribute("xmi:id")})`);
+
+          console.log(
+            `Procesando AssociationClass: ${classEl.getAttribute(
+              "name"
+            )} (${classEl.getAttribute("xmi:id")})`
+          );
           console.log(`   - ownedEnds: ${ownedEnds.length}`);
           console.log(`   - memberEnds: ${memberEnds.length}`);
-          
+
           if (ownedEnds.length >= 2) {
             let sourceEnd = null;
             let targetEnd = null;
-            
+
             // Usar memberEnd para encontrar los ends correctos
             if (memberEnds.length >= 2) {
               const sourceMemberId = memberEnds[0].getAttribute("xmi:idref");
               const targetMemberId = memberEnds[1].getAttribute("xmi:idref");
-              
+
               for (let j = 0; j < ownedEnds.length; j++) {
                 const endId = ownedEnds[j].getAttribute("xmi:id");
                 if (endId === sourceMemberId) {
@@ -2212,12 +2486,12 @@ const exportarXMI = () => {
               sourceEnd = ownedEnds[0];
               targetEnd = ownedEnds[1];
             }
-            
+
             if (sourceEnd && targetEnd) {
               // Buscar el tipo de diferentes maneras
               let sourceId = sourceEnd.getAttribute("type");
               let targetId = targetEnd.getAttribute("type");
-              
+
               // Si no encuentra type, buscar en elementos hijo
               if (!sourceId) {
                 const sourceTypeEl = sourceEnd.querySelector("type");
@@ -2225,22 +2499,27 @@ const exportarXMI = () => {
                   sourceId = sourceTypeEl.getAttribute("xmi:idref");
                 }
               }
-              
+
               if (!targetId) {
                 const targetTypeEl = targetEnd.querySelector("type");
                 if (targetTypeEl) {
                   targetId = targetTypeEl.getAttribute("xmi:idref");
                 }
               }
-              
+
               console.log(`   - sourceEnd HTML:`, sourceEnd.outerHTML);
               console.log(`   - targetEnd HTML:`, targetEnd.outerHTML);
               console.log(`   - sourceId: ${sourceId}`);
               console.log(`   - targetId: ${targetId}`);
               console.log(`   - sourceId en mapa: ${classIdMap.has(sourceId)}`);
               console.log(`   - targetId en mapa: ${classIdMap.has(targetId)}`);
-              
-              if (sourceId && targetId && classIdMap.has(sourceId) && classIdMap.has(targetId)) {
+
+              if (
+                sourceId &&
+                targetId &&
+                classIdMap.has(sourceId) &&
+                classIdMap.has(targetId)
+              ) {
                 // Crear dos relaciones: una desde cada clase hacia la clase intermedia
                 const relation1 = {
                   id: `${classEl.getAttribute("xmi:id")}_1`,
@@ -2250,7 +2529,7 @@ const exportarXMI = () => {
                   multiplicidadOrigen: "1",
                   multiplicidadDestino: "*",
                 };
-                
+
                 const relation2 = {
                   id: `${classEl.getAttribute("xmi:id")}_2`,
                   source: targetId,
@@ -2259,23 +2538,29 @@ const exportarXMI = () => {
                   multiplicidadOrigen: "1",
                   multiplicidadDestino: "*",
                 };
-                
+
                 importedRelations.push(relation1, relation2);
-                console.log(`Relaciones de clase intermedia creadas: ${sourceId} → ${classEl.getAttribute("xmi:id")} ← ${targetId}`);
+                console.log(
+                  `Relaciones de clase intermedia creadas: ${sourceId} → ${classEl.getAttribute(
+                    "xmi:id"
+                  )} ← ${targetId}`
+                );
               } else {
-                console.log(`⚠️ AssociationClass omitida: clases no encontradas (${sourceId}, ${targetId})`);
+                console.log(
+                  `⚠️ AssociationClass omitida: clases no encontradas (${sourceId}, ${targetId})`
+                );
               }
             }
           }
         }
       }
-  
+
       console.log(`Resumen de importación:`);
       console.log(`   - Clases: ${importedClasses.length}`);
       console.log(`   - Relaciones: ${importedRelations.length}`);
       console.log("Clases importadas:", importedClasses);
       console.log("Relaciones importadas:", importedRelations);
-      
+
       // Debug adicional
       console.log("Mapa de IDs de clases:", Array.from(classIdMap.keys()));
       console.log("Todas las clases encontradas en XMI:");
@@ -2283,46 +2568,52 @@ const exportarXMI = () => {
         const classEl = classElements[i];
         const xmiType = classEl.getAttribute("xmi:type");
         if (xmiType === "uml:Class" || xmiType === "uml:AssociationClass") {
-          console.log(`   - ${classEl.getAttribute("name")} (${classEl.getAttribute("xmi:id")}) - ${xmiType}`);
+          console.log(
+            `   - ${classEl.getAttribute("name")} (${classEl.getAttribute(
+              "xmi:id"
+            )}) - ${xmiType}`
+          );
         }
       }
-  
+
       // Aplicar las clases y relaciones importadas
       setClasses(sanitizeClassesPositions(importedClasses));
       setRelations(importedRelations);
-      
+
       // Feedback visual
-      alert(`Importación exitosa!\n\nClases: ${importedClasses.length}\nRelaciones: ${importedRelations.length}`);
+      alert(
+        `Importación exitosa!\n\nClases: ${importedClasses.length}\nRelaciones: ${importedRelations.length}`
+      );
     };
-  
+
     reader.readAsText(file);
   };
 
   const handleUpdateRelation = (relationId, updates) => {
-    setRelations(prevRelations =>
-      prevRelations.map(rel =>
+    setRelations((prevRelations) =>
+      prevRelations.map((rel) =>
         rel.id === relationId ? { ...rel, ...updates } : rel
       )
     );
 
     if (socketRef.current) {
-      socketRef.current.emit('update-relation', {
+      socketRef.current.emit("update-relation", {
         roomId: id,
         relationId,
-        updates
+        updates,
       });
     }
   };
 
   const handleDeleteRelation = (relationId) => {
-    setRelations(prevRelations => 
-      prevRelations.filter(rel => rel.id !== relationId)
+    setRelations((prevRelations) =>
+      prevRelations.filter((rel) => rel.id !== relationId)
     );
 
     if (socketRef.current) {
-      socketRef.current.emit('delete-relation', {
+      socketRef.current.emit("delete-relation", {
         roomId: id,
-        relationId
+        relationId,
       });
     }
   };
@@ -2332,11 +2623,14 @@ const exportarXMI = () => {
   // --- Invitaciones & Usuarios ---
   const fetchUsuarios = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) return;
-      const resp = await axios.get(API_CONFIG.getUrl(`/api/invitations/${id}/users`), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const resp = await axios.get(
+        API_CONFIG.getUrl(`/api/invitations/${id}/users`),
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const lista = resp.data || [];
       setUsuarios(lista);
       // También sincronizar el contador visual de usuarios en línea si el backend devuelve presencia
@@ -2344,33 +2638,43 @@ const exportarXMI = () => {
         setOnlineUsers(lista);
       }
     } catch (err) {
-      console.error('Error obteniendo usuarios del diagrama:', err?.response?.data || err.message);
+      console.error(
+        "Error obteniendo usuarios del diagrama:",
+        err?.response?.data || err.message
+      );
     }
   }, [id]);
 
   const fetchCodigoInvitacion = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) return;
-      
+
       // 1) Intentar recuperar desde localStorage (guardado al generarlo)
       const localKey = `invitationCode:${id}`;
       const stored = localStorage.getItem(localKey);
       if (stored) {
         setCodigoInvitacion(stored);
-        console.log('Código de invitación recuperado de localStorage:', stored);
+        console.log("Código de invitación recuperado de localStorage:", stored);
         return;
       }
 
       // 2) Si no hay en localStorage, no llamamos al endpoint por ID de diagrama
       // porque el backend expone GET /api/invitations/code/{codigoInvitacion} (no por diagramId)
-      console.log('No hay código en localStorage. Omite petición por diagramId para evitar 404.');
+      console.log(
+        "No hay código en localStorage. Omite petición por diagramId para evitar 404."
+      );
     } catch (err) {
       // Solo mostrar error si no es un 404 (endpoint no existe)
       if (err?.response?.status !== 404) {
-        console.error('Error obteniendo código de invitación:', err?.response?.data || err.message);
+        console.error(
+          "Error obteniendo código de invitación:",
+          err?.response?.data || err.message
+        );
       } else {
-        console.log('Endpoint de código de invitación no disponible - esto es normal');
+        console.log(
+          "Endpoint de código de invitación no disponible - esto es normal"
+        );
       }
       // No mostrar error al usuario si no hay código existente
     }
@@ -2378,65 +2682,91 @@ const exportarXMI = () => {
 
   const generarCodigoInvitacion = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('No hay token de autenticación. Inicia sesión nuevamente.');
+        alert("No hay token de autenticación. Inicia sesión nuevamente.");
         return;
       }
-      console.log('Generando nuevo código de invitación...');
-      const resp = await axios.post(API_CONFIG.getUrl(`/api/invitations/generate`), {
-        diagramId: id
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      console.log("Generando nuevo código de invitación...");
+      const resp = await axios.post(
+        API_CONFIG.getUrl(`/api/invitations/generate`),
+        {
+          diagramId: id,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       // Intentar distintas claves posibles que pueda devolver el backend
-      const nuevoCodigo = resp.data?.codigo || resp.data?.code || resp.data?.codigoInvitacion || resp.data?.invitationCode;
-      console.log('Respuesta del servidor al generar:', resp.data);
-      console.log('Nuevo código generado:', nuevoCodigo);
+      const nuevoCodigo =
+        resp.data?.codigo ||
+        resp.data?.code ||
+        resp.data?.codigoInvitacion ||
+        resp.data?.invitationCode;
+      console.log("Respuesta del servidor al generar:", resp.data);
+      console.log("Nuevo código generado:", nuevoCodigo);
       if (nuevoCodigo) {
         setCodigoInvitacion(nuevoCodigo);
         // Guardar para próximas cargas (el backend no expone GET por diagramId)
         try {
           localStorage.setItem(`invitationCode:${id}`, nuevoCodigo);
         } catch {}
-        console.log('Código de invitación actualizado:', nuevoCodigo);
+        console.log("Código de invitación actualizado:", nuevoCodigo);
       } else {
-        console.warn('Respuesta inesperada al generar código de invitación:', resp.data);
-        alert('Código generado pero no se pudo interpretar la respuesta. Revisa consola.');
+        console.warn(
+          "Respuesta inesperada al generar código de invitación:",
+          resp.data
+        );
+        alert(
+          "Código generado pero no se pudo interpretar la respuesta. Revisa consola."
+        );
       }
     } catch (err) {
-      console.error('Error generando código de invitación:', err?.response?.data || err.message);
-      
+      console.error(
+        "Error generando código de invitación:",
+        err?.response?.data || err.message
+      );
+
       // Manejar diferentes tipos de errores
       if (err?.response?.status === 404) {
-        alert('El endpoint de invitaciones no está disponible en el backend.');
+        alert("El endpoint de invitaciones no está disponible en el backend.");
       } else if (err?.response?.status === 401) {
-        alert('No tienes permisos para generar códigos de invitación.');
+        alert("No tienes permisos para generar códigos de invitación.");
       } else if (err?.response?.status === 500) {
-        alert('Error interno del servidor al generar código de invitación.');
+        alert("Error interno del servidor al generar código de invitación.");
       } else {
-        alert('No se pudo generar el código de invitación. Verifica la conexión.');
+        alert(
+          "No se pudo generar el código de invitación. Verifica la conexión."
+        );
       }
     }
   };
 
   const invalidarCodigoInvitacion = async () => {
     if (!codigoInvitacion) return;
-    if (!window.confirm('¿Seguro que deseas invalidar este código?')) return;
+    if (!window.confirm("¿Seguro que deseas invalidar este código?")) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('No hay token de autenticación. Inicia sesión nuevamente.');
+        alert("No hay token de autenticación. Inicia sesión nuevamente.");
         return;
       }
-      await axios.delete(API_CONFIG.getUrl(`/api/invitations/${id}/invitations/${codigoInvitacion}`), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setCodigoInvitacion('');
-      alert('Código invalidado.');
+      await axios.delete(
+        API_CONFIG.getUrl(
+          `/api/invitations/${id}/invitations/${codigoInvitacion}`
+        ),
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setCodigoInvitacion("");
+      alert("Código invalidado.");
     } catch (err) {
-      console.error('Error invalidando código de invitación:', err?.response?.data || err.message);
-      alert('No se pudo invalidar el código.');
+      console.error(
+        "Error invalidando código de invitación:",
+        err?.response?.data || err.message
+      );
+      alert("No se pudo invalidar el código.");
     }
   };
 
@@ -2453,65 +2783,74 @@ const exportarXMI = () => {
 
   const guardarTitulo = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(API_CONFIG.getUrl(`/api/diagramas/${id}`), {
-        titulo: newTitle,
-        contenido: { classes, relations },
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const token = localStorage.getItem("token");
+      await axios.put(
+        API_CONFIG.getUrl(`/api/diagramas/${id}`),
+        {
+          titulo: newTitle,
+          contenido: { classes, relations },
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setTitulo(newTitle);
       setShowTitleModal(false);
     } catch (error) {
-      console.error('Error guardando título:', error);
+      console.error("Error guardando título:", error);
     }
   };
 
   const guardarDiagrama = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('No hay token de autenticación. Inicia sesión nuevamente.');
+        alert("No hay token de autenticación. Inicia sesión nuevamente.");
         return;
       }
-      
-      await axios.put(API_CONFIG.getUrl(`/api/diagramas/${id}`), {
-        titulo,
-        contenido: { classes, relations },
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+
+      await axios.put(
+        API_CONFIG.getUrl(`/api/diagramas/${id}`),
+        {
+          titulo,
+          contenido: { classes, relations },
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
       // Sincronizar con otros usuarios
       if (socketRef.current) {
-        socketRef.current.emit('diagram-saved', {
+        socketRef.current.emit("diagram-saved", {
           roomId: id,
-          diagramData: { titulo, classes, relations }
+          diagramData: { titulo, classes, relations },
         });
       }
 
-      console.log('Diagrama guardado exitosamente');
-      
+      console.log("Diagrama guardado exitosamente");
+
       // Feedback visual opcional
-      const saveButton = document.querySelector('[data-save-button]');
+      const saveButton = document.querySelector("[data-save-button]");
       if (saveButton) {
         const originalText = saveButton.textContent;
-        saveButton.textContent = 'Guardado';
-        saveButton.style.background = '#10B981';
+        saveButton.textContent = "Guardado";
+        saveButton.style.background = "#10B981";
         setTimeout(() => {
           saveButton.textContent = originalText;
-          saveButton.style.background = '';
+          saveButton.style.background = "";
         }, 2000);
       }
-      
     } catch (error) {
-      console.error('Error guardando diagrama:', error);
-      alert(`Error al guardar: ${error.response?.data?.message || error.message}`);
+      console.error("Error guardando diagrama:", error);
+      alert(
+        `Error al guardar: ${error.response?.data?.message || error.message}`
+      );
     }
   };
 
   const volverAInicio = () => {
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   const cerrarModal = () => {
@@ -2529,34 +2868,40 @@ const exportarXMI = () => {
     if (updatedData.titulo) {
       setTitulo(updatedData.titulo);
     }
-    console.log('Diagrama actualizado desde la IA');
+    console.log("Diagrama actualizado desde la IA");
   }, []);
-  
-  
 
   // Pantallas de loading y error - MEJORADAS
   if (isLoading) {
     return (
       <EditorContainer>
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        height: '100vh',
-          flexDirection: 'column',
-          gap: '20px'
-        }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            border: '4px solid rgba(255,255,255,0.3)',
-            borderTop: '4px solid white',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <div style={{ textAlign: 'center', color: 'white' }}>
-            <h2 style={{ margin: '0 0 10px 0', fontSize: '1.5rem' }}>Cargando diagrama...</h2>
-            <p style={{ margin: 0, opacity: 0.8 }}>Conectando con el servidor</p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+            flexDirection: "column",
+            gap: "20px",
+          }}
+        >
+          <div
+            style={{
+              width: "60px",
+              height: "60px",
+              border: "4px solid rgba(255,255,255,0.3)",
+              borderTop: "4px solid white",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          ></div>
+          <div style={{ textAlign: "center", color: "white" }}>
+            <h2 style={{ margin: "0 0 10px 0", fontSize: "1.5rem" }}>
+              Cargando diagrama...
+            </h2>
+            <p style={{ margin: 0, opacity: 0.8 }}>
+              Conectando con el servidor
+            </p>
           </div>
         </div>
       </EditorContainer>
@@ -2566,24 +2911,37 @@ const exportarXMI = () => {
   if (error) {
     return (
       <EditorContainer>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          height: '100vh',
-          flexDirection: 'column',
-          gap: '20px'
-        }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+            flexDirection: "column",
+            gap: "20px",
+          }}
+        >
           <AlertCircle size={64} color="#ef4444" />
-          <div style={{ textAlign: 'center', color: 'white' }}>
-            <h2 style={{ margin: '0 0 10px 0', fontSize: '1.5rem' }}>Error de Conexión</h2>
-            <p style={{ margin: '0 0 20px 0', opacity: 0.8, maxWidth: '400px' }}>{error}</p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <Button onClick={() => window.location.reload()} $variant="primary">
+          <div style={{ textAlign: "center", color: "white" }}>
+            <h2 style={{ margin: "0 0 10px 0", fontSize: "1.5rem" }}>
+              Error de Conexión
+            </h2>
+            <p
+              style={{ margin: "0 0 20px 0", opacity: 0.8, maxWidth: "400px" }}
+            >
+              {error}
+            </p>
+            <div
+              style={{ display: "flex", gap: "12px", justifyContent: "center" }}
+            >
+              <Button
+                onClick={() => window.location.reload()}
+                $variant="primary"
+              >
                 <RefreshCw size={16} />
                 Reintentar
               </Button>
-          </div>
+            </div>
           </div>
         </div>
       </EditorContainer>
@@ -2593,15 +2951,15 @@ const exportarXMI = () => {
   return (
     <EditorContainer>
       <Header>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Title>{titulo || 'Diagrama sin título'}</Title>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <Title>{titulo || "Diagrama sin título"}</Title>
           <Button onClick={abrirModalTitulo} $variant="secondary">
             <Edit size={16} />
             Editar título
           </Button>
           <TourGuide isVisible={true} />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <Button onClick={volverAInicio} $variant="secondary">
             <ArrowLeft size={16} />
             Volver
@@ -2615,121 +2973,153 @@ const exportarXMI = () => {
 
       <ToolbarContainer>
         <ToolbarGroup>
-            <Button $variant="primary" id="agregar-clase" onClick={() => {
+          <Button
+            $variant="primary"
+            id="agregar-clase"
+            onClick={() => {
               clearClassSelection();
               agregarClase();
-            }}>
+            }}
+          >
             <Plus size={16} />
-              Agregar Clase
+            Agregar Clase
           </Button>
           {!isCreatingRelation && (
             <>
-              <Button $variant="secondary" id="crear-asociacion" onClick={() => { 
-                clearClassSelection();
-                setRelationType('Asociación'); 
-                setIsCreatingRelation(true); 
-              }}>
+              <Button
+                $variant="secondary"
+                id="crear-asociacion"
+                onClick={() => {
+                  clearClassSelection();
+                  setRelationType("Asociación");
+                  setIsCreatingRelation(true);
+                }}
+              >
                 <Link size={16} />
                 Crear Asociación
-          </Button>
-              <Button $variant="secondary" id="crear-composicion" onClick={() => { 
-                clearClassSelection();
-                setRelationType('Composición'); 
-                setIsCreatingRelation(true); 
-              }}>
+              </Button>
+              <Button
+                $variant="secondary"
+                id="crear-composicion"
+                onClick={() => {
+                  clearClassSelection();
+                  setRelationType("Composición");
+                  setIsCreatingRelation(true);
+                }}
+              >
                 <CircleDot size={16} />
                 Crear Composición
-            </Button>
-            <Button $variant="secondary" id="crear-agregacion" onClick={() => { 
-                clearClassSelection();
-                setRelationType('Agregacion'); 
-                setIsCreatingRelation(true); 
-              }}>
+              </Button>
+              <Button
+                $variant="secondary"
+                id="crear-agregacion"
+                onClick={() => {
+                  clearClassSelection();
+                  setRelationType("Agregacion");
+                  setIsCreatingRelation(true);
+                }}
+              >
                 <Circle size={16} />
                 Crear Agregación
-            </Button>
-            <Button $variant="secondary" id="crear-generalizacion" onClick={() => { 
-                clearClassSelection();
-                setRelationType('Generalización'); 
-                setIsCreatingRelation(true); 
-              }}>
+              </Button>
+              <Button
+                $variant="secondary"
+                id="crear-generalizacion"
+                onClick={() => {
+                  clearClassSelection();
+                  setRelationType("Generalización");
+                  setIsCreatingRelation(true);
+                }}
+              >
                 <ArrowUp size={16} />
                 Crear Generalización
-            </Button>
-            <Button $variant="secondary" id="crear-muchos-muchos" onClick={() => { 
-                clearClassSelection();
-                setRelationType('Muchos a Muchos'); 
-                setIsCreatingRelation(true); 
-              }}>
+              </Button>
+              <Button
+                $variant="secondary"
+                id="crear-muchos-muchos"
+                onClick={() => {
+                  clearClassSelection();
+                  setRelationType("Muchos a Muchos");
+                  setIsCreatingRelation(true);
+                }}
+              >
                 <ArrowRightLeft size={16} />
                 Crear Muchos a Muchos
-            </Button>
+              </Button>
             </>
           )}
           {isCreatingRelation && (
             <>
-              <Button 
-                $variant="danger" 
+              <Button
+                $variant="danger"
                 onClick={cancelRelationCreation}
                 style={{
-                  padding: '12px 20px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                  border: '2px solid rgba(255, 255, 255, 0.2)',
-                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
-                  color: 'white'
+                  padding: "12px 20px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  background:
+                    "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                  border: "2px solid rgba(255, 255, 255, 0.2)",
+                  boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
+                  color: "white",
                 }}
               >
-                <X size={16} style={{ marginRight: '8px' }} />
+                <X size={16} style={{ marginRight: "8px" }} />
                 Cancelar Relación
               </Button>
-              <div style={{ 
-                padding: '12px 20px', 
-                background: selectedClass 
-                  ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                  : 'linear-gradient(135deg,rgb(0, 0, 0) 0%,rgb(14, 14, 15) 100%)', 
-                borderRadius: '12px', 
-                fontSize: '15px',
-                border: selectedClass 
-                  ? '2px solid rgba(16, 185, 129, 0.3)' 
-                  : '2px solid rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                fontWeight: '600',
-                boxShadow: selectedClass 
-                  ? '0 6px 20px rgba(16, 185, 129, 0.4)' 
-                  : '0 6px 20px rgba(102, 126, 234, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                position: 'relative',
-                overflow: 'hidden',
-                transition: 'all 0.3s ease'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
-                  animation: 'shimmer 2s infinite'
-                }} />
-                <div style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  background: selectedClass ? '#22c55e' : '#667eea',
-                  animation: 'pulse 1.5s infinite',
-                  boxShadow: selectedClass 
-                    ? '0 0 10px rgba(34, 197, 94, 0.6)' 
-                    : '0 0 10px rgba(102, 126, 234, 0.6)',
-                  position: 'relative',
-                  zIndex: 1
-                }} />
-                <span style={{ position: 'relative', zIndex: 1 }}>
-                  {!selectedClass 
-                    ? `🔗 Creando ${relationType}: Haz clic en la primera clase` 
+              <div
+                style={{
+                  padding: "12px 20px",
+                  background: selectedClass
+                    ? "linear-gradient(135deg, #10B981 0%, #059669 100%)"
+                    : "linear-gradient(135deg,rgb(0, 0, 0) 0%,rgb(14, 14, 15) 100%)",
+                  borderRadius: "12px",
+                  fontSize: "15px",
+                  border: selectedClass
+                    ? "2px solid rgba(16, 185, 129, 0.3)"
+                    : "2px solid rgba(255, 255, 255, 0.2)",
+                  color: "white",
+                  fontWeight: "600",
+                  boxShadow: selectedClass
+                    ? "0 6px 20px rgba(16, 185, 129, 0.4)"
+                    : "0 6px 20px rgba(102, 126, 234, 0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  position: "relative",
+                  overflow: "hidden",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background:
+                      "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)",
+                    animation: "shimmer 2s infinite",
+                  }}
+                />
+                <div
+                  style={{
+                    width: "10px",
+                    height: "10px",
+                    borderRadius: "50%",
+                    background: selectedClass ? "#22c55e" : "#667eea",
+                    animation: "pulse 1.5s infinite",
+                    boxShadow: selectedClass
+                      ? "0 0 10px rgba(34, 197, 94, 0.6)"
+                      : "0 0 10px rgba(102, 126, 234, 0.6)",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                />
+                <span style={{ position: "relative", zIndex: 1 }}>
+                  {!selectedClass
+                    ? `🔗 Creando ${relationType}: Haz clic en la primera clase`
                     : `📍 ${relationType}: "${selectedClass.name}" → Selecciona la clase destino`}
                 </span>
               </div>
@@ -2738,110 +3128,191 @@ const exportarXMI = () => {
         </ToolbarGroup>
 
         <ToolbarGroup>
-          <Button $variant="primary" id="exportar-backend" onClick={generateSpringBootProject}>
+          <Button
+            $variant="primary"
+            id="exportar-backend"
+            onClick={generateSpringBootProject}
+          >
             <Code size={16} />
             Exportar Backend
           </Button>
-          <Button $variant="success" id="exportar-flutter" onClick={generateFlutterProject}>
+          {/* <Button $variant="success" id="exportar-flutter" onClick={generateFlutterProject}>
             <FileDown size={16} />
             Exportar Flutter
-          </Button>
-          <Button $variant="primary" id="exportar-fullstack" onClick={generateFullStackProject} style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            fontWeight: '600'
-          }}>
+          </Button> */}
+          {/* <Button
+            $variant="primary"
+            id="exportar-fullstack"
+            onClick={generateFullStackProject}
+            style={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              fontWeight: "600",
+            }}
+          >
             <Code size={16} />
             Exportar Full-Stack
-          </Button>
-            <Button $variant="secondary" id="exportar-xmi" onClick={exportarXMI}>
+          </Button> */}
+          <Button $variant="secondary" id="exportar-xmi" onClick={exportarXMI}>
             <FileDown size={16} />
             Exportar XMI
-            </Button>
-          <Button $variant="secondary" onClick={() => downloadJSON({ titulo, classes, relations })}>
+          </Button>
+          <Button
+            $variant="secondary"
+            onClick={() => downloadJSON({ titulo, classes, relations })}
+          >
             <Download size={16} />
-              Descargar JSON
-            </Button>
-          <label style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', padding: '8px 16px', backgroundColor: '#6c757d', color: 'white', borderRadius: '4px', fontSize: '14px', fontWeight: '500' }}>
-            <FileUp size={16} style={{ marginRight: '8px' }} />
+            Descargar JSON
+          </Button>
+          <label
+            style={{
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "8px 16px",
+              backgroundColor: "#6c757d",
+              color: "white",
+              borderRadius: "4px",
+              fontSize: "14px",
+              fontWeight: "500",
+            }}
+          >
+            <FileUp size={16} style={{ marginRight: "8px" }} />
             Importar XMI
-            <input 
-              type="file" 
-              accept=".xmi,.xml" 
-              onChange={handleFileImport} 
-              style={{ display: 'none' }} 
+            <input
+              type="file"
+              accept=".xmi,.xml"
+              onChange={handleFileImport}
+              style={{ display: "none" }}
             />
           </label>
-          <Button $variant="primary" id="mostrar-ia" onClick={() => {
-            console.log('Toggle AI Chat desde toolbar:', !chatAIVisible);
-            setChatAIVisible(!chatAIVisible);
-          }}>
+          <Button
+            $variant="primary"
+            id="mostrar-ia"
+            onClick={() => {
+              console.log("Toggle AI Chat desde toolbar:", !chatAIVisible);
+              setChatAIVisible(!chatAIVisible);
+            }}
+          >
             <Bot size={16} />
-            {chatAIVisible ? 'Ocultar IA' : 'Mostrar IA'}
-            </Button>
+            {chatAIVisible ? "Ocultar IA" : "Mostrar IA"}
+          </Button>
           {!codigoInvitacion && (
-            <Button $variant="success" id="generar-codigo-invitacion" onClick={generarCodigoInvitacion}>
+            <Button
+              $variant="success"
+              id="generar-codigo-invitacion"
+              onClick={generarCodigoInvitacion}
+            >
               <Key size={16} />
               Generar Código Invitación
             </Button>
           )}
         </ToolbarGroup>
-        
+
         {/* Status bar en toolbar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             {/* Estado de conexión */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {(isConnected || httpConnected) ? <Wifi size={16} color="#48bb78" /> : <WifiOff size={16} color="#f56565" />}
-              <span style={{ fontSize: '13px', color: (isConnected || httpConnected) ? '#48bb78' : '#f56565', fontWeight: '500' }}>
-                {(isConnected || httpConnected) ? 
-                  (isConnected && httpConnected ? 'Conectado (HTTP + WebSocket)' : 
-                   isConnected ? 'Conectado (WebSocket)' : 'Conectado (HTTP)') 
-                  : 'Desconectado'}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              {isConnected || httpConnected ? (
+                <Wifi size={16} color="#48bb78" />
+              ) : (
+                <WifiOff size={16} color="#f56565" />
+              )}
+              <span
+                style={{
+                  fontSize: "13px",
+                  color: isConnected || httpConnected ? "#48bb78" : "#f56565",
+                  fontWeight: "500",
+                }}
+              >
+                {isConnected || httpConnected
+                  ? isConnected && httpConnected
+                    ? "Conectado (HTTP + WebSocket)"
+                    : isConnected
+                    ? "Conectado (WebSocket)"
+                    : "Conectado (HTTP)"
+                  : "Desconectado"}
               </span>
             </div>
-            
+
             {/* Separador */}
-            <div style={{ width: '1px', height: '16px', background: 'rgba(255, 255, 255, 0.2)' }}></div>
-            
+            <div
+              style={{
+                width: "1px",
+                height: "16px",
+                background: "rgba(255, 255, 255, 0.2)",
+              }}
+            ></div>
+
             {/* Usuarios en línea */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <Users size={14} color="#667eea" />
-              <span style={{ fontSize: '13px', color: '#667eea', fontWeight: '500' }}>
+              <span
+                style={{
+                  fontSize: "13px",
+                  color: "#667eea",
+                  fontWeight: "500",
+                }}
+              >
                 {onlineUsers.length} usuario(s) en línea
               </span>
             </div>
-            
+
             {/* Separador */}
-            <div style={{ width: '1px', height: '16px', background: 'rgba(255, 255, 255, 0.2)' }}></div>
-            
+            <div
+              style={{
+                width: "1px",
+                height: "16px",
+                background: "rgba(255, 255, 255, 0.2)",
+              }}
+            ></div>
+
             {/* Información del canvas */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', color: '#fff', fontWeight: '600' }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span
+                style={{ fontSize: "13px", color: "#fff", fontWeight: "600" }}
+              >
                 Zoom: {Math.round(zoomLevel * 100)}%
               </span>
-              <span style={{ fontSize: '13px', color: '#fff', fontWeight: '600' }}>
-                Pos: ({Math.round(canvasOffset.x)}, {Math.round(canvasOffset.y)})
+              <span
+                style={{ fontSize: "13px", color: "#fff", fontWeight: "600" }}
+              >
+                Pos: ({Math.round(canvasOffset.x)}, {Math.round(canvasOffset.y)}
+                )
               </span>
-              <span style={{ fontSize: '13px', color: '#fff', fontWeight: '600' }}>
+              <span
+                style={{ fontSize: "13px", color: "#fff", fontWeight: "600" }}
+              >
                 Clases: {classes.length}
               </span>
-              <span style={{ fontSize: '13px', color: '#fff', fontWeight: '600' }}>
+              <span
+                style={{ fontSize: "13px", color: "#fff", fontWeight: "600" }}
+              >
                 Relaciones: {relations.length}
               </span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Button id="auto-organizar" onClick={() => {
-              autoOrganizeClasses();
-            }} $variant="primary" style={{ 
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
-            }}>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button
+              id="auto-organizar"
+              onClick={() => {
+                autoOrganizeClasses();
+              }}
+              $variant="primary"
+              style={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              }}
+            >
               <CircleDot size={16} />
               Auto-Organizar
             </Button>
-            <Button id="centrar-vista" onClick={() => {
-              fitToBounds();
-            }} $variant="primary">
+            <Button
+              id="centrar-vista"
+              onClick={() => {
+                fitToBounds();
+              }}
+              $variant="primary"
+            >
               <RefreshCw size={16} />
               Centrar Vista
             </Button>
@@ -2863,7 +3334,7 @@ const exportarXMI = () => {
                 {usuarios.map((item) => (
                   <li key={item.id}>
                     <span>
-                      <Users size={16} style={{ marginRight: '8px' }} />
+                      <Users size={16} style={{ marginRight: "8px" }} />
                       {item.Usuario.nombre}
                     </span>
                     <span className="badge">{item.permiso}</span>
@@ -2881,17 +3352,17 @@ const exportarXMI = () => {
                   <Key size={16} />
                   <strong>Código de Invitación:</strong>
                 </p>
-                <div className="code-display">
-                  {codigoInvitacion}
-                </div>
+                <div className="code-display">{codigoInvitacion}</div>
                 <div className="button-group">
                   <Button
                     $variant="primary"
-                    style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                    style={{ padding: "6px 12px", fontSize: "0.75rem" }}
                     onClick={() => {
-                      navigator.clipboard.writeText(codigoInvitacion).then(() => {
-                        alert('Código copiado al portapapeles');
-                      });
+                      navigator.clipboard
+                        .writeText(codigoInvitacion)
+                        .then(() => {
+                          alert("Código copiado al portapapeles");
+                        });
                     }}
                   >
                     <Copy size={12} />
@@ -2923,127 +3394,36 @@ const exportarXMI = () => {
 
       <DiagramWrapper>
         {/* Indicador de posición del viewport */}
-        <div className="viewport-chip" style={{
-          position: 'absolute',
-          top: '16px',
-          right: '16px',
-          zIndex: 10,
-          background: 'rgba(0, 0, 0, 0.5)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '8px',
-          padding: '8px 10px',
-          color: 'white',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          backdropFilter: 'blur(6px)',
-          transition: 'opacity 0.2s',
-          opacity: 0.8
-        }}>
-          <div style={{ fontWeight: '600', marginBottom: '4px', color: '#667eea' }}>Viewport</div>
+        <div
+          className="viewport-chip"
+          style={{
+            position: "absolute",
+            top: "16px",
+            right: "16px",
+            zIndex: 10,
+            background: "rgba(0, 0, 0, 0.5)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            borderRadius: "8px",
+            padding: "8px 10px",
+            color: "white",
+            fontSize: "12px",
+            fontFamily: "monospace",
+            backdropFilter: "blur(6px)",
+            transition: "opacity 0.2s",
+            opacity: 0.8,
+          }}
+        >
+          <div
+            style={{ fontWeight: "600", marginBottom: "4px", color: "#667eea" }}
+          >
+            Viewport
+          </div>
           <div>X: {Math.round(canvasOffset.x)}</div>
           <div>Y: {Math.round(canvasOffset.y)}</div>
           <div>Zoom: {Math.round(zoomLevel * 100)}%</div>
         </div>
 
-        {/* Mini-mapa del canvas */}
-        <div className="minimap" style={{
-          position: 'absolute',
-          right: '16px',
-          bottom: '16px',
-          zIndex: 10,
-          background: 'rgba(0, 0, 0, 0.5)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '8px',
-          padding: '12px',
-          backdropFilter: 'blur(6px)',
-          width: '300px',
-          height: '200px'
-        }}>
-          <div style={{ 
-            color: 'white', 
-            fontSize: '12px', 
-            fontWeight: '600', 
-            marginBottom: '8px',
-            textAlign: 'center'
-          }}>
-            Mini-mapa
-          </div>
-          
-          {/* Representación del canvas completo */}
-          <div style={{
-            position: 'relative',
-            width: '100%',
-            height: '140px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '4px',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            overflow: 'hidden'
-          }}>
-           {/* Puntos que representan las clases */}
-           {classes.map((cls, index) => (
-             <div
-               key={cls.id}
-               style={{
-                 position: 'absolute',
-                 left: `${(cls.x / 6000) * 100}%`,
-                 top: `${(cls.y / 4000) * 100}%`,
-                 width: '4px',
-                 height: '4px',
-                 background: '#10B981',
-                 borderRadius: '50%',
-                 boxShadow: '0 0 4px rgba(16, 185, 129, 0.6)'
-               }}
-               title={cls.name}
-             />
-           ))}
-           
-           {/* Rectángulo del viewport actual (usa tamaño real del contenedor y zoom) */}
-           {(() => {
-             const viewport = viewportRef.current;
-             const vpW = viewport ? viewport.clientWidth : window.innerWidth;
-             const vpH = viewport ? viewport.clientHeight : window.innerHeight;
-             const viewLeft = Math.max(0, Math.min(6000, -canvasOffset.x / zoomLevel));
-             const viewTop = Math.max(0, Math.min(4000, -canvasOffset.y / zoomLevel));
-             const viewW = Math.min(6000, vpW / zoomLevel);
-             const viewH = Math.min(4000, vpH / zoomLevel);
-             return (
-               <div style={{
-                 position: 'absolute',
-                 left: `${(viewLeft / 6000) * 100}%`,
-                 top: `${(viewTop / 4000) * 100}%`,
-                 width: `${(viewW / 6000) * 100}%`,
-                 height: `${(viewH / 4000) * 100}%`,
-                 border: '2px solidrgb(24, 25, 27)',
-                 background: 'rgba(102, 126, 234, 0.2)',
-                 borderRadius: '2px',
-                 boxShadow: '0 0 8px rgba(39, 40, 43, 0.4)'
-               }} />
-             );
-           })()}
-            
-            {/* Líneas de referencia en el mini-mapa */}
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: '0',
-              right: '0',
-              height: '1px',
-              background: 'rgba(255, 255, 255, 0.3)',
-              pointerEvents: 'none'
-            }} />
-            <div style={{
-              position: 'absolute',
-              left: '50%',
-              top: '0',
-              bottom: '0',
-              width: '1px',
-              background: 'rgba(255, 255, 255, 0.3)',
-              pointerEvents: 'none'
-            }} />
-          </div>
-        </div>
-
-        <CanvasContainer 
+        <CanvasContainer
           ref={viewportRef}
           $isCreatingRelation={isCreatingRelation}
           onWheel={handleWheel}
@@ -3052,108 +3432,142 @@ const exportarXMI = () => {
           onMouseUp={handleMouseUp}
           onContextMenu={handleContextMenu}
           style={{
-            cursor: isPanning ? 'grabbing' : (isCreatingRelation ? 'crosshair' : 'grab'),
-            userSelect: 'none'
+            cursor: isPanning
+              ? "grabbing"
+              : isCreatingRelation
+              ? "crosshair"
+              : "grab",
+            userSelect: "none",
           }}
         >
-               <ZoomableCanvas
+          <ZoomableCanvas
             style={{
-              transform: `translate(${Number.isFinite(canvasOffset.x) ? canvasOffset.x : 0}px, ${Number.isFinite(canvasOffset.y) ? canvasOffset.y : 0}px) scale(${Number.isFinite(zoomLevel) && zoomLevel > 0 ? zoomLevel : 1})`,
-              transformOrigin: '0 0',
-              willChange: 'transform'
+              transform: `translate(${
+                Number.isFinite(canvasOffset.x) ? canvasOffset.x : 0
+              }px, ${
+                Number.isFinite(canvasOffset.y) ? canvasOffset.y : 0
+              }px) scale(${
+                Number.isFinite(zoomLevel) && zoomLevel > 0 ? zoomLevel : 1
+              })`,
+              transformOrigin: "0 0",
+              willChange: "transform",
             }}
           >
             <div
               ref={canvasContainerRef}
               className="diagram-canvas"
               style={{
-                position: 'absolute',     // no participa del flujo
+                position: "absolute", // no participa del flujo
                 left: 0,
                 top: 0,
-                width: '6000px',          // plano más grande para grid extendido
-                height: '4000px',         // pero sin afectar el body
-                border: isCreatingRelation ? '2px dashed rgba(74, 108, 247, 0.5)' : 'none',
-                backgroundColor: 'transparent'
+                width: "6000px", // plano más grande para grid extendido
+                height: "4000px", // pero sin afectar el body
+                border: isCreatingRelation
+                  ? "2px dashed rgba(74, 108, 247, 0.5)"
+                  : "none",
+                backgroundColor: "transparent",
               }}
             >
               {/* HUD y puntos de depuración removidos para una vista limpia */}
 
-               {/* Renderizar clases UML */}
-               {classes.map((classItem) => {
-                 return (
-                   <ClassComponent
-                     key={classItem.id}
-                     id={classItem.id}
-                     className={classItem.name}
-                     x={classItem.x}
-                     y={classItem.y}
-                     attributes={classItem.attributes}
-                     methods={classItem.methods}
-                     onPositionChange={(pos) => handleClassUpdate(classItem.id, pos)}
-                     onUpdate={handleClassUpdate}
-                     onDelete={() => handleClassDelete(classItem.id)}
-                     onSelect={() => handleClassClick(classItem)}
-                     $isSelected={selectedClass && selectedClass.id === classItem.id}
-                     $isHighlighted={isCreatingRelation}
-                     $isFirstSelection={isCreatingRelation && selectedClass && selectedClass.id === classItem.id}
-                     $canBeTarget={isCreatingRelation && selectedClass && selectedClass.id !== classItem.id}
-                     socket={socketRef.current}
-                     idDiagrama={id}
-                   />
-                 );
-               })}
-               
-               {/* Renderizar relaciones UML */}
-               {relations.map((relation) => {
-                 const sourceClass = classes.find((cls) => cls.id === relation.source);
-                 const targetClass = classes.find((cls) => cls.id === relation.target);
-                 if (!sourceClass || !targetClass) return null;
-                 return (
-                   <AssociationRelation
-                     key={relation.id}
-                     sourceClass={sourceClass}
-                     targetClass={targetClass}
-                     relation={relation}
-                     onUpdate={handleUpdateRelation}
-                     onDelete={handleDeleteRelation}
-                     allClasses={classes}
-                   />
-                 );
-               })}
+              {/* Renderizar clases UML */}
+              {classes.map((classItem) => {
+                return (
+                  <ClassComponent
+                    key={classItem.id}
+                    id={classItem.id}
+                    className={classItem.name}
+                    x={classItem.x}
+                    y={classItem.y}
+                    attributes={classItem.attributes}
+                    methods={classItem.methods}
+                    onPositionChange={(pos) =>
+                      handleClassUpdate(classItem.id, pos)
+                    }
+                    onUpdate={handleClassUpdate}
+                    onDelete={() => handleClassDelete(classItem.id)}
+                    onSelect={() => handleClassClick(classItem)}
+                    $isSelected={
+                      selectedClass && selectedClass.id === classItem.id
+                    }
+                    $isHighlighted={isCreatingRelation}
+                    $isFirstSelection={
+                      isCreatingRelation &&
+                      selectedClass &&
+                      selectedClass.id === classItem.id
+                    }
+                    $canBeTarget={
+                      isCreatingRelation &&
+                      selectedClass &&
+                      selectedClass.id !== classItem.id
+                    }
+                    socket={socketRef.current}
+                    idDiagrama={id}
+                  />
+                );
+              })}
+
+              {/* Renderizar relaciones UML */}
+              {relations.map((relation) => {
+                const sourceClass = classes.find(
+                  (cls) => cls.id === relation.source
+                );
+                const targetClass = classes.find(
+                  (cls) => cls.id === relation.target
+                );
+                if (!sourceClass || !targetClass) return null;
+                return (
+                  <AssociationRelation
+                    key={relation.id}
+                    sourceClass={sourceClass}
+                    targetClass={targetClass}
+                    relation={relation}
+                    onUpdate={handleUpdateRelation}
+                    onDelete={handleDeleteRelation}
+                    allClasses={classes}
+                  />
+                );
+              })}
 
               {isCreatingRelation && selectedClass && cursorPosition && (
-                <svg 
-                  style={{ 
-                    position: 'absolute', 
-                    left: -500, 
-                    top: -500, 
-                    pointerEvents: 'none', 
-                    width: 'calc(100% + 1000px)', 
-                    height: 'calc(100% + 1000px)',
+                <svg
+                  style={{
+                    position: "absolute",
+                    left: -500,
+                    top: -500,
+                    pointerEvents: "none",
+                    width: "calc(100% + 1000px)",
+                    height: "calc(100% + 1000px)",
                     zIndex: 1000,
-                    overflow: 'visible'
+                    overflow: "visible",
                   }}
                 >
                   <defs>
-                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                      <feMerge> 
-                        <feMergeNode in="coloredBlur"/>
-                        <feMergeNode in="SourceGraphic"/>
+                    <filter
+                      id="glow"
+                      x="-50%"
+                      y="-50%"
+                      width="200%"
+                      height="200%"
+                    >
+                      <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                      <feMerge>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
                       </feMerge>
                     </filter>
                   </defs>
-              <line
-                x1={selectedClass.x + 100}
-                y1={selectedClass.y + 30}
-                x2={cursorPosition.x}
-                y2={cursorPosition.y}
+                  <line
+                    x1={selectedClass.x + 100}
+                    y1={selectedClass.y + 30}
+                    x2={cursorPosition.x}
+                    y2={cursorPosition.y}
                     stroke="#4A6CF7"
                     strokeDasharray="8,4"
                     strokeWidth="3"
                     filter="url(#glow)"
                     style={{
-                      animation: 'pulse 1.5s ease-in-out infinite'
+                      animation: "pulse 1.5s ease-in-out infinite",
                     }}
                   />
                   <circle
@@ -3163,7 +3577,7 @@ const exportarXMI = () => {
                     fill="#4A6CF7"
                     filter="url(#glow)"
                     style={{
-                      animation: 'pulse 1s ease-in-out infinite'
+                      animation: "pulse 1s ease-in-out infinite",
                     }}
                   />
                   <circle
@@ -3173,116 +3587,154 @@ const exportarXMI = () => {
                     fill="#22C55E"
                     stroke="#fff"
                     strokeWidth="2"
-              />
-            </svg>
-          )}
-          </div>
+                  />
+                </svg>
+              )}
+            </div>
           </ZoomableCanvas>
-      </CanvasContainer>
+        </CanvasContainer>
       </DiagramWrapper>
 
       {isModalOpen && (
         <Modal>
-          <ModalContent style={{ maxWidth: '800px', maxHeight: '90vh', overflow: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+          <ModalContent
+            style={{ maxWidth: "800px", maxHeight: "90vh", overflow: "auto" }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "20px",
+              }}
+            >
+              <h2
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  margin: 0,
+                }}
+              >
                 <Code size={24} />
                 Exportar a Spring Boot
               </h2>
-              <Button onClick={cerrarModal} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>
+              <Button
+                onClick={cerrarModal}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                }}
+              >
                 <X size={24} />
               </Button>
             </div>
 
             {/* Loading */}
             {isLoading && (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-            <div style={{ 
-                  border: '3px solid #f3f3f3',
-                  borderTop: '3px solid #4a6cf7',
-                  borderRadius: '50%',
-                  width: '40px',
-                  height: '40px',
-                  animation: 'spin 1s linear infinite',
-                  margin: '0 auto'
-                }}></div>
-                <p style={{ marginTop: '16px', color: '#666' }}>Generando archivo JDL...</p>
+              <div style={{ textAlign: "center", padding: "40px" }}>
+                <div
+                  style={{
+                    border: "3px solid #f3f3f3",
+                    borderTop: "3px solid #4a6cf7",
+                    borderRadius: "50%",
+                    width: "40px",
+                    height: "40px",
+                    animation: "spin 1s linear infinite",
+                    margin: "0 auto",
+                  }}
+                ></div>
+                <p style={{ marginTop: "16px", color: "#666" }}>
+                  Generando archivo JDL...
+                </p>
               </div>
             )}
 
             {/* Error */}
             {exportError && (
-              <div style={{ 
-                textAlign: 'center', 
-              padding: '20px', 
-                color: '#d32f2f',
-                background: '#ffebee',
-                borderRadius: '8px',
-                marginBottom: '20px'
-              }}>
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "20px",
+                  color: "#d32f2f",
+                  background: "#ffebee",
+                  borderRadius: "8px",
+                  marginBottom: "20px",
+                }}
+              >
                 <p>{exportError}</p>
-                <Button 
-                  $variant="primary" 
+                <Button
+                  $variant="primary"
                   onClick={generateSpringBootProject}
-                  style={{ marginTop: '12px' }}
+                  style={{ marginTop: "12px" }}
                 >
                   <RefreshCw size={16} />
                   Reintentar
                 </Button>
-            </div>
+              </div>
             )}
 
             {/* Success - JDL Content */}
             {jdlContent && (
               <div>
-                <div style={{ marginBottom: '16px', color: '#2e7d32' }}>
+                <div style={{ marginBottom: "16px", color: "#2e7d32" }}>
                   <h3>JDL generado exitosamente</h3>
-                  <p style={{ color: '#666' }}>Tu archivo JDL está listo para usar con JHipster:</p>
+                  <p style={{ color: "#666" }}>
+                    Tu archivo JDL está listo para usar con JHipster:
+                  </p>
                 </div>
-                
+
                 {/* JDL Preview */}
-            <div style={{ 
-                  background: '#f8f9fa',
-                  border: '1px solid #e9ecef',
-              borderRadius: '8px', 
-                  marginBottom: '16px',
-                  maxHeight: '300px',
-                  overflow: 'auto'
-                }}>
-                  <pre style={{
-                    padding: '16px',
-                    margin: '0',
-                    fontFamily: 'Courier New, monospace',
-                    fontSize: '12px',
-                    lineHeight: '1.4',
-                    whiteSpace: 'pre-wrap',
-                    wordWrap: 'break-word'
-                  }}>
+                <div
+                  style={{
+                    background: "#f8f9fa",
+                    border: "1px solid #e9ecef",
+                    borderRadius: "8px",
+                    marginBottom: "16px",
+                    maxHeight: "300px",
+                    overflow: "auto",
+                  }}
+                >
+                  <pre
+                    style={{
+                      padding: "16px",
+                      margin: "0",
+                      fontFamily: "Courier New, monospace",
+                      fontSize: "12px",
+                      lineHeight: "1.4",
+                      whiteSpace: "pre-wrap",
+                      wordWrap: "break-word",
+                    }}
+                  >
                     {jdlContent}
                   </pre>
-            </div>
-            
+                </div>
+
                 {/* Action Buttons */}
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                  <Button 
-                    $variant="primary" 
+                <div
+                  style={{ display: "flex", gap: "12px", marginBottom: "16px" }}
+                >
+                  <Button
+                    $variant="primary"
                     onClick={downloadJDL}
                     style={{ flex: 1 }}
                   >
                     <Download size={16} />
                     Descargar JDL
-              </Button>
-              <Button 
-                $variant="success" 
+                  </Button>
+                  <Button
+                    $variant="success"
                     onClick={copyToClipboard}
                     style={{ flex: 1 }}
-              >
+                  >
                     <Copy size={16} />
                     Copiar al portapapeles
-              </Button>
+                  </Button>
                   {zipDownloadUrl && (
-                    <Button 
-                      $variant="warning" 
+                    <Button
+                      $variant="warning"
                       onClick={downloadSpringBootProject}
                       style={{ flex: 1 }}
                     >
@@ -3290,48 +3742,84 @@ const exportarXMI = () => {
                       Descargar Proyecto ZIP
                     </Button>
                   )}
-            </div>
+                </div>
 
                 {/* Instructions */}
-            <div style={{ 
-                  background: '#e3f2fd',
-                  padding: '16px',
-                  borderRadius: '8px'
-                }}>
-                  <h4 style={{ margin: '0 0 8px 0', color: '#1976d2' }}>Pasos para usar el JDL:</h4>
-                  <ol style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
-                    <li style={{ marginBottom: '4px' }}>
-                      Instala JHipster: <code style={{ background: '#f5f5f5', padding: '2px 4px', borderRadius: '3px' }}>npm install -g generator-jhipster</code>
+                <div
+                  style={{
+                    background: "#e3f2fd",
+                    padding: "16px",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <h4 style={{ margin: "0 0 8px 0", color: "#1976d2" }}>
+                    Pasos para usar el JDL:
+                  </h4>
+                  <ol style={{ margin: "8px 0 0 0", paddingLeft: "20px" }}>
+                    <li style={{ marginBottom: "4px" }}>
+                      Instala JHipster:{" "}
+                      <code
+                        style={{
+                          background: "#f5f5f5",
+                          padding: "2px 4px",
+                          borderRadius: "3px",
+                        }}
+                      >
+                        npm install -g generator-jhipster
+                      </code>
                     </li>
-                    <li style={{ marginBottom: '4px' }}>Crea una carpeta para tu proyecto</li>
-                    <li style={{ marginBottom: '4px' }}>Guarda el archivo JDL en esa carpeta</li>
-                    <li style={{ marginBottom: '4px' }}>
-                      Ejecuta: <code style={{ background: '#f5f5f5', padding: '2px 4px', borderRadius: '3px' }}>jhipster jdl archivo.jdl</code>
+                    <li style={{ marginBottom: "4px" }}>
+                      Crea una carpeta para tu proyecto
+                    </li>
+                    <li style={{ marginBottom: "4px" }}>
+                      Guarda el archivo JDL en esa carpeta
+                    </li>
+                    <li style={{ marginBottom: "4px" }}>
+                      Ejecuta:{" "}
+                      <code
+                        style={{
+                          background: "#f5f5f5",
+                          padding: "2px 4px",
+                          borderRadius: "3px",
+                        }}
+                      >
+                        jhipster jdl archivo.jdl
+                      </code>
                     </li>
                   </ol>
-            </div>
-          </div>
-        )}
+                </div>
+              </div>
+            )}
 
             {/* Initial state - show generate button */}
             {!isLoading && !exportError && !jdlContent && (
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <p style={{ marginBottom: '20px', color: '#666' }}>
-                  Genera automáticamente un archivo JDL de Spring Boot basado en tu diagrama UML.
+              <div style={{ textAlign: "center", padding: "20px" }}>
+                <p style={{ marginBottom: "20px", color: "#666" }}>
+                  Genera automáticamente un archivo JDL de Spring Boot basado en
+                  tu diagrama UML.
                 </p>
-              <Button 
+                <Button
                   $variant="primary"
                   onClick={generateSpringBootProject}
-                  style={{ padding: '12px 24px', fontSize: '16px' }}
+                  style={{ padding: "12px 24px", fontSize: "16px" }}
                 >
                   <Code size={20} />
                   Generar JDL
-              </Button>
+                </Button>
               </div>
             )}
 
             {/* Footer buttons */}
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                justifyContent: "flex-end",
+                marginTop: "20px",
+                paddingTop: "20px",
+                borderTop: "1px solid #eee",
+              }}
+            >
               <Button onClick={cerrarModal}>
                 <X size={16} />
                 Cerrar
@@ -3345,7 +3833,16 @@ const exportarXMI = () => {
       {showTitleModal && (
         <Modal onClick={() => setShowTitleModal(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ margin: '0 0 16px 0', color: '#1a202c', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2
+              style={{
+                margin: "0 0 16px 0",
+                color: "#1a202c",
+                fontSize: "1.25rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
               <Edit size={20} />
               Editar Título
             </h2>
@@ -3355,22 +3852,31 @@ const exportarXMI = () => {
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Ingresa el título del diagrama"
               style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '1rem',
-                marginBottom: '16px'
+                width: "100%",
+                padding: "12px",
+                border: "2px solid #e2e8f0",
+                borderRadius: "8px",
+                fontSize: "1rem",
+                marginBottom: "16px",
               }}
             />
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <Button onClick={() => setShowTitleModal(false)} $variant="secondary">
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Button
+                onClick={() => setShowTitleModal(false)}
+                $variant="secondary"
+              >
                 Cancelar
               </Button>
               <Button onClick={guardarTitulo} $variant="primary">
                 Guardar
               </Button>
-          </div>
+            </div>
           </ModalContent>
         </Modal>
       )}
@@ -3379,11 +3885,20 @@ const exportarXMI = () => {
       {showBackendModal && (
         <Modal onClick={() => setShowBackendModal(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ margin: '0 0 16px 0', color: '#1a202c', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2
+              style={{
+                margin: "0 0 16px 0",
+                color: "#1a202c",
+                fontSize: "1.25rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
               <Settings size={20} />
               Configuración del Editor
             </h2>
-            <div style={{ marginBottom: '16px' }}>
+            <div style={{ marginBottom: "16px" }}>
               <h3>Funciones disponibles:</h3>
               <ul>
                 <li>Guardar diagrama automático</li>
@@ -3393,34 +3908,50 @@ const exportarXMI = () => {
                 <li>Gestión de invitaciones</li>
                 <li>Control de zoom y navegación</li>
               </ul>
-              
-              <h3 style={{ marginTop: '20px', marginBottom: '10px' }}>Controles de Navegación:</h3>
-          <div style={{ 
-                background: '#f8f9fa', 
-                padding: '12px', 
-                borderRadius: '8px',
-                fontSize: '14px',
-                lineHeight: '1.6'
-              }}>
-                <div style={{ marginBottom: '8px' }}>
+
+              <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>
+                Controles de Navegación:
+              </h3>
+              <div
+                style={{
+                  background: "#f8f9fa",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  lineHeight: "1.6",
+                }}
+              >
+                <div style={{ marginBottom: "8px" }}>
                   <strong>Zoom:</strong> Ctrl + Rueda del mouse
-          </div>
-                <div style={{ marginBottom: '8px' }}>
-                  <strong>🖱️ Arrastrar:</strong> Ctrl + Click izquierdo y arrastrar
                 </div>
-                <div style={{ marginBottom: '8px' }}>
+                <div style={{ marginBottom: "8px" }}>
+                  <strong>🖱️ Arrastrar:</strong> Ctrl + Click izquierdo y
+                  arrastrar
+                </div>
+                <div style={{ marginBottom: "8px" }}>
                   <strong>Reset:</strong> Botón "Reset" para volver al zoom 100%
                 </div>
-                <div style={{ marginBottom: '8px' }}>
-                  <strong>Centrar:</strong> Botón "Centrar" para mostrar todas las clases
+                <div style={{ marginBottom: "8px" }}>
+                  <strong>Centrar:</strong> Botón "Centrar" para mostrar todas
+                  las clases
                 </div>
                 <div>
-                  <strong>Indicador:</strong> El porcentaje de zoom se muestra en la barra de estado
+                  <strong>Indicador:</strong> El porcentaje de zoom se muestra
+                  en la barra de estado
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <Button onClick={() => setShowBackendModal(false)} $variant="secondary">
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Button
+                onClick={() => setShowBackendModal(false)}
+                $variant="secondary"
+              >
                 Cerrar
               </Button>
             </div>
@@ -3432,20 +3963,18 @@ const exportarXMI = () => {
       <AIAssistant
         isOpen={chatAIVisible}
         onToggle={() => {
-          console.log('Toggle AI Chat:', !chatAIVisible);
+          console.log("Toggle AI Chat:", !chatAIVisible);
           setChatAIVisible(!chatAIVisible);
         }}
         zIndexBase={1700}
         width={400}
         hideFloatingButton={true}
         diagramId={id}
-        currentDiagram={
-          {
-            titulo,
-            classes,
-            relations
-          }
-        }
+        currentDiagram={{
+          titulo,
+          classes,
+          relations,
+        }}
         onDiagramUpdate={handleDiagramUpdateFromAgent}
       />
     </EditorContainer>

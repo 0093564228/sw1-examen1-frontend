@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
-import styled from 'styled-components';
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import styled from "styled-components";
 
 const FormContainer = styled.div`
   display: flex;
@@ -9,7 +9,7 @@ const FormContainer = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   padding: 20px;
 `;
 
@@ -49,7 +49,7 @@ const Input = styled.input`
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s ease;
-  
+
   &:focus {
     outline: none;
     border-color: #667eea;
@@ -65,7 +65,7 @@ const TextArea = styled.textarea`
   min-height: 100px;
   resize: vertical;
   transition: border-color 0.2s ease;
-  
+
   &:focus {
     outline: none;
     border-color: #667eea;
@@ -86,8 +86,10 @@ const Button = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  
-  ${props => props.variant === 'primary' && `
+
+  ${(props) =>
+    props.variant === "primary" &&
+    `
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     
@@ -96,8 +98,10 @@ const Button = styled.button`
       box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
     }
   `}
-  
-  ${props => props.variant === 'secondary' && `
+
+  ${(props) =>
+    props.variant === "secondary" &&
+    `
     background: rgba(255, 255, 255, 0.9);
     color: #4a5568;
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -113,25 +117,28 @@ const DiagramaForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
-  
-  const [titulo, setTitulo] = useState('');
-  const [descripcion, setDescripcion] = useState('');
+
+  const [titulo, setTitulo] = useState("");
+  const [descripcion, setDescripcion] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const cargarDiagrama = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:3001/api/diagramas/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      setTitulo(response.data.titulo || '');
-      setDescripcion(response.data.descripcion || '');
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:3001/api/diagramas/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setTitulo(response.data.titulo || "");
+      setDescripcion(response.data.descripcion || "");
     } catch (error) {
-      console.error('Error al cargar diagrama:', error);
-      setError('Error al cargar el diagrama');
+      console.error("Error al cargar diagrama:", error);
+      setError("Error al cargar el diagrama");
     } finally {
       setLoading(false);
     }
@@ -145,55 +152,59 @@ const DiagramaForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!titulo.trim()) {
-      setError('El título es requerido');
+      setError("El título es requerido");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
-      
-      const token = localStorage.getItem('token');
+      setError("");
+
+      const token = localStorage.getItem("token");
       const data = {
         titulo: titulo.trim(),
         descripcion: descripcion.trim(),
-        contenido: { classes: [], relations: [] }
+        contenido: { classes: [], relations: [] },
       };
 
       if (isEditing) {
         await axios.put(`http://localhost:3001/api/diagramas/${id}`, data, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        const response = await axios.post('http://localhost:3001/api/diagramas', data, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
+        const response = await axios.post(
+          "http://localhost:3001/api/diagramas",
+          data,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
         // Redirigir al editor del nuevo diagrama
         navigate(`/editor-diagrama/${response.data.id}`);
         return;
       }
-      
-      navigate('/dashboard');
+
+      navigate("/dashboard");
     } catch (error) {
-      console.error('Error al guardar diagrama:', error);
-      setError('Error al guardar el diagrama');
+      console.error("Error al guardar diagrama:", error);
+      setError("Error al guardar el diagrama");
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   if (loading && isEditing) {
     return (
       <FormContainer>
         <FormCard>
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: "center" }}>
             <h3>Cargando diagrama...</h3>
           </div>
         </FormCard>
@@ -204,23 +215,23 @@ const DiagramaForm = () => {
   return (
     <FormContainer>
       <FormCard>
-        <Title>
-          {isEditing ? 'Editar Diagrama' : 'Crear Nuevo Diagrama'}
-        </Title>
-        
+        <Title>{isEditing ? "Editar Diagrama" : "Crear Nuevo Diagrama"}</Title>
+
         {error && (
-          <div style={{ 
-            background: '#fed7d7', 
-            color: '#c53030', 
-            padding: '12px', 
-            borderRadius: '8px', 
-            marginBottom: '20px',
-            textAlign: 'center'
-          }}>
+          <div
+            style={{
+              background: "#fed7d7",
+              color: "#c53030",
+              padding: "12px",
+              borderRadius: "8px",
+              marginBottom: "20px",
+              textAlign: "center",
+            }}
+          >
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <FormGroup>
             <Label htmlFor="titulo">Título del Diagrama</Label>
@@ -233,7 +244,7 @@ const DiagramaForm = () => {
               disabled={loading}
             />
           </FormGroup>
-          
+
           <FormGroup>
             <Label htmlFor="descripcion">Descripción (opcional)</Label>
             <TextArea
@@ -244,7 +255,7 @@ const DiagramaForm = () => {
               disabled={loading}
             />
           </FormGroup>
-          
+
           <ButtonGroup>
             <Button
               type="button"
@@ -254,12 +265,8 @@ const DiagramaForm = () => {
             >
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={loading}
-            >
-              {loading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear')}
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? "Guardando..." : isEditing ? "Actualizar" : "Crear"}
             </Button>
           </ButtonGroup>
         </form>

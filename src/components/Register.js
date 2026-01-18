@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import styled from 'styled-components';
-import { User, Mail, Lock, UserPlus, Eye, EyeOff } from 'lucide-react';
-import API_CONFIG from '../services/apiConfig';
+import React, { useState } from "react";
+import axios from "axios";
+import styled from "styled-components";
+import { User, Mail, Lock, UserPlus, Eye, EyeOff } from "lucide-react";
+import API_CONFIG from "../services/apiConfig";
 
 // Estilos usando styled-components
 const Container = styled.div`
@@ -10,63 +10,69 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   padding: 20px;
   position: relative;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
-      radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(120, 119, 198, 0.02) 0%, transparent 50%);
+    background: radial-gradient(
+        circle at 20% 20%,
+        rgba(102, 126, 234, 0.03) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 80%,
+        rgba(120, 119, 198, 0.02) 0%,
+        transparent 50%
+      );
     pointer-events: none;
   }
 `;
 
 const Form = styled.form`
-  background: rgba(255, 255, 255, 0.08);
+  background: #ffffff;
   backdrop-filter: blur(20px);
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   padding: 50px;
   width: 100%;
   max-width: 480px;
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   position: relative;
   z-index: 1;
   transition: all 0.4s ease;
 
   &:hover {
     transform: translateY(-8px);
-    box-shadow: 
-      0 30px 60px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 `;
 
 const Title = styled.h2`
   font-size: 2.5rem;
   font-weight: 800;
-  color: #fff;
+  color: #1a202c;
   text-align: center;
   margin-bottom: 40px;
-  background: linear-gradient(135deg, #ffffff 0%, #a8a8ff 50%, #ffffff 100%);
+  background: linear-gradient(135deg, #1a202c 0%, #4a5568 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   letter-spacing: -0.02em;
   position: relative;
-  
+
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -12px;
     left: 50%;
@@ -87,9 +93,9 @@ const Label = styled.label`
   display: block;
   margin-bottom: 12px;
   font-weight: 600;
-  color: #fff;
+  color: #4a5568;
   font-size: 1rem;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 `;
 
 const InputContainer = styled.div`
@@ -102,30 +108,29 @@ const InputIcon = styled.div`
   position: absolute;
   left: 18px;
   z-index: 2;
-  color: rgba(255, 255, 255, 0.6);
+  color: #a0aec0;
   transition: color 0.3s ease;
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 18px 20px 18px 50px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
   border-radius: 16px;
   font-size: 1.1rem;
-  color: #fff;
+  color: #1a202c;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 500;
 
   &:focus {
     outline: none;
     border-color: #667eea;
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 
-      0 0 0 4px rgba(102, 126, 234, 0.1),
-      0 8px 25px rgba(0, 0, 0, 0.15);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1),
+      0 8px 25px rgba(0, 0, 0, 0.05);
     transform: translateY(-2px);
   }
 
@@ -134,7 +139,7 @@ const Input = styled.input`
   }
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: #a0aec0;
     font-weight: 400;
   }
 `;
@@ -144,7 +149,7 @@ const PasswordToggle = styled.button`
   right: 18px;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: #a0aec0;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -169,31 +174,34 @@ const Button = styled.button`
   font-weight: 700;
   transition: all 0.3s ease;
   margin-top: 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   letter-spacing: 0.01em;
   position: relative;
   overflow: hidden;
-  box-shadow: 
-    0 8px 25px rgba(102, 126, 234, 0.25),
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  
+
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.15),
+      transparent
+    );
     transition: left 0.5s;
   }
 
   &:hover {
     transform: translateY(-3px);
-    box-shadow: 
-      0 12px 35px rgba(102, 126, 234, 0.35),
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.35),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    
+
     &::before {
       left: 100%;
     }
@@ -210,31 +218,36 @@ const Message = styled.div`
   border-radius: 12px;
   font-weight: 600;
   text-align: center;
-  font-family: 'Inter', sans-serif;
-  background: ${(props) => (props.error ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)')};
-  color: ${(props) => (props.error ? '#f87171' : '#10B981')};
-  border: 1px solid ${(props) => (props.error ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)')};
+  font-family: "Inter", sans-serif;
+  background: ${(props) =>
+    props.error ? "rgba(239, 68, 68, 0.1)" : "rgba(16, 185, 129, 0.1)"};
+  color: ${(props) => (props.error ? "#f87171" : "#10B981")};
+  border: 1px solid
+    ${(props) =>
+      props.error ? "rgba(239, 68, 68, 0.2)" : "rgba(16, 185, 129, 0.2)"};
   backdrop-filter: blur(10px);
 `;
 
 const Register = () => {
-  const [nombre, setNombre] = useState('');
-  const [correo, setCorreo] = useState('');
-  const [contraseña, setContraseña] = useState('');
-  const [mensaje, setMensaje] = useState('');
+  const [nombre, setNombre] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [contraseña, setContraseña] = useState("");
+  const [mensaje, setMensaje] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(API_CONFIG.getUrl('/api/auth/register'), {
+      await axios.post(API_CONFIG.getUrl("/api/auth/register"), {
         nombre,
         correo,
         contraseña,
       });
-      setMensaje('Registro exitoso. Ahora puedes iniciar sesión.');
+      setMensaje("Registro exitoso. Ahora puedes iniciar sesión.");
     } catch (error) {
-      setMensaje(error.response.data.mensaje || 'Error al registrar el usuario.');
+      setMensaje(
+        error.response.data.mensaje || "Error al registrar el usuario."
+      );
     }
   };
 
@@ -242,7 +255,7 @@ const Register = () => {
     <Container>
       <Form onSubmit={handleRegister}>
         <Title>Crear Cuenta</Title>
-        
+
         <FormGroup>
           <Label>Nombre completo</Label>
           <InputContainer>
@@ -258,7 +271,7 @@ const Register = () => {
             </InputIcon>
           </InputContainer>
         </FormGroup>
-        
+
         <FormGroup>
           <Label>Correo electrónico</Label>
           <InputContainer>
@@ -274,7 +287,7 @@ const Register = () => {
             </InputIcon>
           </InputContainer>
         </FormGroup>
-        
+
         <FormGroup>
           <Label>Contraseña</Label>
           <InputContainer>
@@ -296,16 +309,14 @@ const Register = () => {
             </PasswordToggle>
           </InputContainer>
         </FormGroup>
-        
+
         <Button type="submit">
-          <UserPlus size={20} style={{ marginRight: '10px' }} />
+          <UserPlus size={20} style={{ marginRight: "10px" }} />
           Registrarse
         </Button>
-        
+
         {mensaje && (
-          <Message error={mensaje.includes('Error')}>
-            {mensaje}
-          </Message>
+          <Message error={mensaje.includes("Error")}>{mensaje}</Message>
         )}
       </Form>
     </Container>

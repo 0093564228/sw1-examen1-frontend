@@ -1,35 +1,39 @@
-import React, { useState, useRef, useEffect } from 'react';
-import styled from 'styled-components';
-import { Plus, Edit3, GripVertical, Settings } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import styled from "styled-components";
+import { Plus, Edit3, GripVertical, Settings } from "lucide-react";
 
 const ClassContainer = styled.div`
   position: absolute;
-  background: #2d3748;
+  background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 300px;
   overflow: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  border: 2px solid #ffffff;
-  transition: ${props => props.$isDragging ? 'none' : 'all 0.2s ease'};
-  left: ${props => props.x}px;
-  top: ${props => props.y}px;
-  z-index: ${props => props.$isDragging ? 1000 : 10};
-  cursor: ${props => props.$isDragging ? 'grabbing' : 'grab'};
-  will-change: ${props => props.$isDragging ? 'transform' : 'auto'};
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  border: 1px solid #e2e8f0;
+  transition: ${(props) => (props.$isDragging ? "none" : "all 0.2s ease")};
+  left: ${(props) => props.x}px;
+  top: ${(props) => props.y}px;
+  z-index: ${(props) => (props.$isDragging ? 1000 : 10)};
+  cursor: ${(props) => (props.$isDragging ? "grabbing" : "grab")};
+  will-change: ${(props) => (props.$isDragging ? "transform" : "auto")};
 
   &:hover {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     border-color: #667eea;
   }
 
-  ${props => props.$isSelected && `
+  ${(props) =>
+    props.$isSelected &&
+    `
     border-color: #10B981;
     box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
     transform: scale(1.02);
   `}
 
-  ${props => props.$isDragging && `
+  ${(props) =>
+    props.$isDragging &&
+    `
     transform: scale(1.05) rotate(1deg);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
     border-color: #667eea;
@@ -37,8 +41,8 @@ const ClassContainer = styled.div`
 `;
 
 const ClassHeader = styled.div`
-  background: #4a5568;
-  color: white;
+  background: #f7fafc;
+  color: #2d3748;
   padding: 16px;
   text-align: center;
   position: relative;
@@ -52,7 +56,7 @@ const ClassHeader = styled.div`
     font-size: 1.2rem;
     font-weight: 700;
     letter-spacing: 0.5px;
-    color: white;
+    color: #2d3748;
   }
 
   input {
@@ -80,7 +84,7 @@ const DeleteButton = styled.button`
   top: 12px;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.85);
+  color: #a0aec0;
   cursor: pointer;
   padding: 0;
   border-radius: 0;
@@ -92,15 +96,15 @@ const DeleteButton = styled.button`
   justify-content: center;
 
   &:hover {
-    color: #EF4444;
+    color: #ef4444;
     transform: scale(1.05);
   }
 `;
 
 const Section = styled.div`
   padding: 16px;
-  border-bottom: 1px solid #4a5568;
-  background: #2d3748;
+  border-bottom: 1px solid #cbd5e0;
+  background: #ffffff;
 
   &:last-child {
     border-bottom: none;
@@ -109,7 +113,7 @@ const Section = styled.div`
 
 const SectionTitle = styled.h5`
   margin: 0 0 12px 0;
-  color: white;
+  color: #4a5568;
   font-size: 0.9rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -145,11 +149,11 @@ const ListItem = styled.li`
   input {
     flex: 1;
     padding: 8px 12px;
-    border: 2px solid #4a5568;
+    border: 1px solid #cbd5e0;
     border-radius: 8px;
     font-size: 0.9rem;
-    background: #1a202c;
-    color: white;
+    background: #ffffff;
+    color: #2d3748;
     transition: all 0.3s ease;
 
     &:focus {
@@ -166,7 +170,7 @@ const ListItem = styled.li`
 `;
 
 const AddButton = styled.button`
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -199,7 +203,7 @@ const AddButton = styled.button`
 
 const RemoveButton = styled.button`
   background: transparent;
-  color: rgba(255, 255, 255, 0.85);
+  color: #cbd5e0;
   border: none;
   border-radius: 6px;
   padding: 0;
@@ -215,7 +219,7 @@ const RemoveButton = styled.button`
   transition: color 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    color: #EF4444;
+    color: #ef4444;
     transform: scale(1.05);
   }
 `;
@@ -226,7 +230,7 @@ const DragHandle = styled.div`
   left: 8px;
   width: 20px;
   height: 20px;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -242,7 +246,7 @@ const DragHandle = styled.div`
 
   i {
     font-size: 10px;
-    color: white;
+    color: #4a5568;
   }
 `;
 
@@ -259,7 +263,7 @@ const ClassComponent = ({
   onSelect,
   $isSelected,
   socket,
-  idDiagrama
+  idDiagrama,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(className);
@@ -287,22 +291,22 @@ const ClassComponent = ({
     if (e.button === 0 && !isEditingAnyField) {
       e.preventDefault();
       e.stopPropagation();
-      
+
       // Calcular offset basado en la posición actual de la clase
       const offsetX = e.clientX - x;
       const offsetY = e.clientY - y;
-      
+
       setIsDragging(true);
-      
+
       onSelect && onSelect();
-      
+
       const handleMouseMove = (e) => {
         e.preventDefault();
-        
+
         // Calcular nueva posición basada en el offset inicial
         const newX = e.clientX - offsetX;
         const newY = e.clientY - offsetY;
-        
+
         // Throttle con requestAnimationFrame para suavizar arrastre
         pendingPosRef.current = { x: newX, y: newY };
         if (rafIdRef.current == null) {
@@ -314,13 +318,13 @@ const ClassComponent = ({
             rafIdRef.current = null;
           });
         }
-        
+
         // Emitir movimiento en tiempo real al servidor
         if (socket) {
-          socket.emit('move-class', {
+          socket.emit("move-class", {
             roomId: idDiagrama,
             classId: id,
-            position: { x: newX, y: newY }
+            position: { x: newX, y: newY },
           });
         }
       };
@@ -328,33 +332,35 @@ const ClassComponent = ({
       const handleMouseUp = (e) => {
         e.preventDefault();
         setIsDragging(false);
-        
+
         // Aplicar snap-to-grid cuando se suelta
         const GRID_SIZE = 50; // Tamaño del grid para snap
-        
+
         // Forzar una última actualización pendiente si existe
         if (rafIdRef.current) {
           cancelAnimationFrame(rafIdRef.current);
           rafIdRef.current = null;
         }
-        
+
         if (pendingPosRef.current && onPositionChange) {
           // Aplicar snap-to-grid
-          const snappedX = Math.round(pendingPosRef.current.x / GRID_SIZE) * GRID_SIZE;
-          const snappedY = Math.round(pendingPosRef.current.y / GRID_SIZE) * GRID_SIZE;
-          
+          const snappedX =
+            Math.round(pendingPosRef.current.x / GRID_SIZE) * GRID_SIZE;
+          const snappedY =
+            Math.round(pendingPosRef.current.y / GRID_SIZE) * GRID_SIZE;
+
           onPositionChange({ x: snappedX, y: snappedY });
         }
-        
+
         pendingPosRef.current = null;
-        
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
       };
-      
+
       // Agregar eventos
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
     }
   };
 
@@ -368,24 +374,24 @@ const ClassComponent = ({
     onUpdate(id, { name });
 
     if (socket) {
-      socket.emit('update-class', {
+      socket.emit("update-class", {
         roomId: idDiagrama,
         classId: id,
-        updatedData: { name }
+        updatedData: { name },
       });
     }
   };
 
   const addAttribute = () => {
-    const newAttributes = [...localAttributes, ''];
+    const newAttributes = [...localAttributes, ""];
     setLocalAttributes(newAttributes);
     onUpdate(id, { attributes: newAttributes });
 
     if (socket) {
-      socket.emit('update-class', {
+      socket.emit("update-class", {
         roomId: idDiagrama,
         classId: id,
-        updatedData: { attributes: newAttributes }
+        updatedData: { attributes: newAttributes },
       });
     }
   };
@@ -397,10 +403,10 @@ const ClassComponent = ({
     onUpdate(id, { attributes: newAttributes });
 
     if (socket) {
-      socket.emit('update-class', {
+      socket.emit("update-class", {
         roomId: idDiagrama,
         classId: id,
-        updatedData: { attributes: newAttributes }
+        updatedData: { attributes: newAttributes },
       });
     }
   };
@@ -411,24 +417,24 @@ const ClassComponent = ({
     onUpdate(id, { attributes: newAttributes });
 
     if (socket) {
-      socket.emit('update-class', {
+      socket.emit("update-class", {
         roomId: idDiagrama,
         classId: id,
-        updatedData: { attributes: newAttributes }
+        updatedData: { attributes: newAttributes },
       });
     }
   };
 
   const addMethod = () => {
-    const newMethods = [...localMethods, ''];
+    const newMethods = [...localMethods, ""];
     setLocalMethods(newMethods);
     onUpdate(id, { methods: newMethods });
 
     if (socket) {
-      socket.emit('update-class', {
+      socket.emit("update-class", {
         roomId: idDiagrama,
         classId: id,
-        updatedData: { methods: newMethods }
+        updatedData: { methods: newMethods },
       });
     }
   };
@@ -440,10 +446,10 @@ const ClassComponent = ({
     onUpdate(id, { methods: newMethods });
 
     if (socket) {
-      socket.emit('update-class', {
+      socket.emit("update-class", {
         roomId: idDiagrama,
         classId: id,
-        updatedData: { methods: newMethods }
+        updatedData: { methods: newMethods },
       });
     }
   };
@@ -454,10 +460,10 @@ const ClassComponent = ({
     onUpdate(id, { methods: newMethods });
 
     if (socket) {
-      socket.emit('update-class', {
+      socket.emit("update-class", {
         roomId: idDiagrama,
         classId: id,
-        updatedData: { methods: newMethods }
+        updatedData: { methods: newMethods },
       });
     }
   };
@@ -476,10 +482,10 @@ const ClassComponent = ({
         if (e.touches.length === 1 && !isEditingAnyField) {
           // No prevenir el comportamiento por defecto para evitar conflictos
           const touch = e.touches[0];
-          const mouseEvent = new MouseEvent('mousedown', {
+          const mouseEvent = new MouseEvent("mousedown", {
             clientX: touch.clientX,
             clientY: touch.clientY,
-            button: 0
+            button: 0,
           });
           handleMouseDown(mouseEvent);
         }
@@ -489,28 +495,36 @@ const ClassComponent = ({
         <DragHandle>
           <GripVertical size={16} />
         </DragHandle>
-        
+
         {isEditing ? (
           <input
             value={name}
             onChange={handleNameChange}
             onBlur={handleNameBlur}
-            onKeyPress={(e) => e.key === 'Enter' && handleNameBlur()}
+            onKeyPress={(e) => e.key === "Enter" && handleNameBlur()}
             onMouseDown={(e) => e.stopPropagation()}
             autoFocus
           />
         ) : (
           <h4 onDoubleClick={() => setIsEditing(true)}>{name}</h4>
         )}
-        
-        <DeleteButton onClick={onDelete} aria-label="Eliminar clase" title="Eliminar clase">
-          <span style={{
-            display: 'inline-block',
-            fontSize: '16px',
-            lineHeight: 1,
-            fontWeight: 800,
-            userSelect: 'none'
-          }}>×</span>
+
+        <DeleteButton
+          onClick={onDelete}
+          aria-label="Eliminar clase"
+          title="Eliminar clase"
+        >
+          <span
+            style={{
+              display: "inline-block",
+              fontSize: "16px",
+              lineHeight: 1,
+              fontWeight: 800,
+              userSelect: "none",
+            }}
+          >
+            ×
+          </span>
         </DeleteButton>
       </ClassHeader>
 
@@ -530,14 +544,22 @@ const ClassComponent = ({
                 onBlur={() => setIsEditingAnyField(false)}
                 placeholder="nombre : tipo"
               />
-              <RemoveButton onClick={() => removeAttribute(index)} title="Eliminar atributo" aria-label="Eliminar atributo">
-                <span style={{
-                  display: 'inline-block',
-                  fontSize: '16px',
-                  lineHeight: 1,
-                  fontWeight: 800,
-                  userSelect: 'none'
-                }}>×</span>
+              <RemoveButton
+                onClick={() => removeAttribute(index)}
+                title="Eliminar atributo"
+                aria-label="Eliminar atributo"
+              >
+                <span
+                  style={{
+                    display: "inline-block",
+                    fontSize: "16px",
+                    lineHeight: 1,
+                    fontWeight: 800,
+                    userSelect: "none",
+                  }}
+                >
+                  ×
+                </span>
               </RemoveButton>
             </ListItem>
           ))}
@@ -564,14 +586,22 @@ const ClassComponent = ({
                 onBlur={() => setIsEditingAnyField(false)}
                 placeholder="nombre(param : tipo) : tipo"
               />
-              <RemoveButton onClick={() => removeMethod(index)} title="Eliminar método" aria-label="Eliminar método">
-                <span style={{
-                  display: 'inline-block',
-                  fontSize: '16px',
-                  lineHeight: 1,
-                  fontWeight: 800,
-                  userSelect: 'none'
-                }}>×</span>
+              <RemoveButton
+                onClick={() => removeMethod(index)}
+                title="Eliminar método"
+                aria-label="Eliminar método"
+              >
+                <span
+                  style={{
+                    display: "inline-block",
+                    fontSize: "16px",
+                    lineHeight: 1,
+                    fontWeight: 800,
+                    userSelect: "none",
+                  }}
+                >
+                  ×
+                </span>
               </RemoveButton>
             </ListItem>
           ))}

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { Edit3, Trash2, X } from 'lucide-react';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { Edit3, Trash2, X } from "lucide-react";
 
-const RelationGroup = styled.g.attrs(props => ({
-  className: props.$isSelected ? 'selected' : ''
+const RelationGroup = styled.g.attrs((props) => ({
+  className: props.$isSelected ? "selected" : "",
 }))`
   cursor: pointer;
   z-index: 1000;
@@ -16,7 +16,8 @@ const RelationGroup = styled.g.attrs(props => ({
 
   &.selected .relation-path {
     stroke-width: 4;
-    stroke-dasharray: ${props => props.$type === 'Muchos a Muchos' ? '8' : 'none'};
+    stroke-dasharray: ${(props) =>
+      props.$type === "Muchos a Muchos" ? "8" : "none"};
     filter: brightness(1.3);
   }
 `;
@@ -36,16 +37,16 @@ const RelationPath = styled.path`
 const RelationText = styled.text`
   font-size: 16px;
   font-weight: 800;
-  fill: white;
+  fill: #1a202c;
   text-anchor: middle;
   pointer-events: none;
   user-select: none;
   dominant-baseline: middle;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
-  stroke: rgba(0, 0, 0, 0.8);
+  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.8));
+  stroke: rgba(255, 255, 255, 0.8);
   stroke-width: 0.5px;
   paint-order: stroke fill;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 `;
 
 const RelationControls = styled.div`
@@ -60,18 +61,21 @@ const RelationControls = styled.div`
   backdrop-filter: blur(20px);
   border: 2px solid #667eea;
   transform: translate(-50%, -150%);
-  
+
   &:hover {
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
   }
 `;
 
-const ControlButton = styled.button.attrs(props => ({
-  type: 'button'
+const ControlButton = styled.button.attrs((props) => ({
+  type: "button",
 }))`
-  background: ${props => props.$variant === 'danger' ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)' : 
-    props.$variant === 'warning' ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' :
-    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
+  background: ${(props) =>
+    props.$variant === "danger"
+      ? "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
+      : props.$variant === "warning"
+      ? "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)"
+      : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"};
   color: white;
   border: none;
   border-radius: 10px;
@@ -102,8 +106,8 @@ const ControlButton = styled.button.attrs(props => ({
 
 const RelationLabel = styled.text`
   font-size: 14px;
-  fill: white;
-  font-family: 'Inter', sans-serif;
+  fill: #1a202c;
+  font-family: "Inter", sans-serif;
   font-weight: 700;
   cursor: pointer;
   text-anchor: middle;
@@ -139,7 +143,7 @@ const RelationInput = styled.foreignObject`
 `;
 
 const DeleteButton = styled.button`
-  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border: none;
   border-radius: 50%;
@@ -158,7 +162,7 @@ const DeleteButton = styled.button`
   min-height: 32px;
 
   &:hover {
-    background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     transform: translateY(-2px) scale(1.1);
     box-shadow: 0 6px 16px rgba(239, 68, 68, 0.5);
   }
@@ -176,42 +180,42 @@ const DeleteButton = styled.button`
 const getRelationStyle = (type) => {
   const baseStyle = {
     strokeWidth: 3,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
   };
 
   switch (type) {
-    case 'Composición':
+    case "Composición":
       return {
         ...baseStyle,
-        stroke: '#2563EB',
-        markerEnd: 'url(#compositionMarker)',
+        stroke: "#2563EB",
+        markerEnd: "url(#compositionMarker)",
       };
-    case 'Agregación':
+    case "Agregación":
       return {
         ...baseStyle,
-        stroke: '#059669',
-        markerEnd: 'url(#aggregationMarker)',
+        stroke: "#059669",
+        markerEnd: "url(#aggregationMarker)",
       };
-    case 'Generalización':
+    case "Generalización":
       return {
         ...baseStyle,
-        stroke: '#7C3AED',
-        markerEnd: 'url(#generalizationMarker)',
+        stroke: "#7C3AED",
+        markerEnd: "url(#generalizationMarker)",
       };
-    case 'Muchos a Muchos':
+    case "Muchos a Muchos":
       return {
         ...baseStyle,
-        stroke: '#DB2777',
-        strokeDasharray: '6',
+        stroke: "#DB2777",
+        strokeDasharray: "6",
         strokeWidth: 3,
       };
     default:
       return {
         ...baseStyle,
-        stroke: '#667eea',
+        stroke: "#667eea",
         strokeWidth: 3,
-        markerEnd: 'url(#associationMarker)',
+        markerEnd: "url(#associationMarker)",
       };
   }
 };
@@ -238,19 +242,19 @@ const AssociationRelation = ({
   };
 
   const handleBackgroundClick = (e) => {
-    if (e.target.tagName !== 'path') {
+    if (e.target.tagName !== "path") {
       setIsSelected(false);
       setShowControls(false);
     }
   };
 
   React.useEffect(() => {
-    document.addEventListener('click', handleBackgroundClick);
-    return () => document.removeEventListener('click', handleBackgroundClick);
+    document.addEventListener("click", handleBackgroundClick);
+    return () => document.removeEventListener("click", handleBackgroundClick);
   }, []);
 
   const handleEditMultiplicidad = (tipo) => {
-    if (tipo === 'origen') {
+    if (tipo === "origen") {
       setEditModeOrigen(true);
       setEditModeDestino(false);
     } else {
@@ -283,20 +287,28 @@ const AssociationRelation = ({
     const CLASS_HEIGHT = 150;
 
     // Verificar que las clases tengan coordenadas válidas
-    if (!sourceClass || !targetClass || 
-        typeof sourceClass.x !== 'number' || typeof sourceClass.y !== 'number' ||
-        typeof targetClass.x !== 'number' || typeof targetClass.y !== 'number') {
-      console.warn('Coordenadas inválidas para las clases:', { sourceClass, targetClass });
+    if (
+      !sourceClass ||
+      !targetClass ||
+      typeof sourceClass.x !== "number" ||
+      typeof sourceClass.y !== "number" ||
+      typeof targetClass.x !== "number" ||
+      typeof targetClass.y !== "number"
+    ) {
+      console.warn("Coordenadas inválidas para las clases:", {
+        sourceClass,
+        targetClass,
+      });
       return { startX: 0, startY: 0, endX: 100, endY: 100 };
     }
 
     const sourceCenter = {
       x: sourceClass.x + CLASS_WIDTH / 2,
-      y: sourceClass.y + CLASS_HEIGHT / 2
+      y: sourceClass.y + CLASS_HEIGHT / 2,
     };
     const targetCenter = {
       x: targetClass.x + CLASS_WIDTH / 2,
-      y: targetClass.y + CLASS_HEIGHT / 2
+      y: targetClass.y + CLASS_HEIGHT / 2,
     };
 
     // Calcular dirección del vector desde origen hacia destino
@@ -305,7 +317,12 @@ const AssociationRelation = ({
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
     if (distance === 0) {
-      return { startX: sourceCenter.x, startY: sourceCenter.y, endX: targetCenter.x, endY: targetCenter.y };
+      return {
+        startX: sourceCenter.x,
+        startY: sourceCenter.y,
+        endX: targetCenter.x,
+        endY: targetCenter.y,
+      };
     }
 
     // Normalizar el vector
@@ -313,16 +330,23 @@ const AssociationRelation = ({
     const ny = deltaY / distance;
 
     // Función para encontrar el punto de intersección EXACTO con el borde de un rectángulo
-    const findIntersectionPoint = (centerX, centerY, dirX, dirY, width, height) => {
+    const findIntersectionPoint = (
+      centerX,
+      centerY,
+      dirX,
+      dirY,
+      width,
+      height
+    ) => {
       // Calcular las coordenadas exactas de los bordes del rectángulo
       const leftEdge = centerX - width / 2;
       const rightEdge = centerX + width / 2;
       const topEdge = centerY - height / 2;
       const bottomEdge = centerY + height / 2;
-      
+
       // Calcular intersecciones con cada borde
       const intersections = [];
-      
+
       // Borde izquierdo (x = leftEdge)
       if (dirX !== 0) {
         const tLeft = (leftEdge - centerX) / dirX;
@@ -333,7 +357,7 @@ const AssociationRelation = ({
           }
         }
       }
-      
+
       // Borde derecho (x = rightEdge)
       if (dirX !== 0) {
         const tRight = (rightEdge - centerX) / dirX;
@@ -344,7 +368,7 @@ const AssociationRelation = ({
           }
         }
       }
-      
+
       // Borde superior (y = topEdge)
       if (dirY !== 0) {
         const tTop = (topEdge - centerY) / dirY;
@@ -355,7 +379,7 @@ const AssociationRelation = ({
           }
         }
       }
-      
+
       // Borde inferior (y = bottomEdge)
       if (dirY !== 0) {
         const tBottom = (bottomEdge - centerY) / dirY;
@@ -366,17 +390,19 @@ const AssociationRelation = ({
           }
         }
       }
-      
+
       // Retornar la intersección más cercana (menor t)
       if (intersections.length > 0) {
-        const closest = intersections.reduce((min, current) => current.t < min.t ? current : min);
+        const closest = intersections.reduce((min, current) =>
+          current.t < min.t ? current : min
+        );
         // Asegurar que el punto esté EXACTAMENTE en el borde (redondear para evitar errores de punto flotante)
-        return { 
-          x: Math.round(closest.x * 100) / 100, 
-          y: Math.round(closest.y * 100) / 100 
+        return {
+          x: Math.round(closest.x * 100) / 100,
+          y: Math.round(closest.y * 100) / 100,
         };
       }
-      
+
       // Fallback - si no hay intersección, usar el borde más cercano
       // Esto no debería pasar, pero por seguridad
       if (Math.abs(dirX) > Math.abs(dirY)) {
@@ -387,16 +413,30 @@ const AssociationRelation = ({
     };
 
     // Encontrar punto de salida en la clase origen
-    const startPoint = findIntersectionPoint(sourceCenter.x, sourceCenter.y, nx, ny, CLASS_WIDTH, CLASS_HEIGHT);
-    
-    // Encontrar punto de entrada en la clase destino
-    const endPoint = findIntersectionPoint(targetCenter.x, targetCenter.y, -nx, -ny, CLASS_WIDTH, CLASS_HEIGHT);
+    const startPoint = findIntersectionPoint(
+      sourceCenter.x,
+      sourceCenter.y,
+      nx,
+      ny,
+      CLASS_WIDTH,
+      CLASS_HEIGHT
+    );
 
-    return { 
-      startX: startPoint.x, 
-      startY: startPoint.y, 
-      endX: endPoint.x, 
-      endY: endPoint.y 
+    // Encontrar punto de entrada en la clase destino
+    const endPoint = findIntersectionPoint(
+      targetCenter.x,
+      targetCenter.y,
+      -nx,
+      -ny,
+      CLASS_WIDTH,
+      CLASS_HEIGHT
+    );
+
+    return {
+      startX: startPoint.x,
+      startY: startPoint.y,
+      endX: endPoint.x,
+      endY: endPoint.y,
     };
   };
 
@@ -411,7 +451,7 @@ const AssociationRelation = ({
 
     // Obtener las clases que no son origen ni destino (obstáculos)
     const obstacles = allClasses.filter(
-      cls => cls.id !== sourceClass.id && cls.id !== targetClass.id
+      (cls) => cls.id !== sourceClass.id && cls.id !== targetClass.id
     );
 
     // Verificar si un punto está dentro o muy cerca de una clase
@@ -431,39 +471,48 @@ const AssociationRelation = ({
       const clsRight = cls.x + CLASS_WIDTH;
       const clsTop = cls.y;
       const clsBottom = cls.y + CLASS_HEIGHT;
-      
+
       // Si alguno de los puntos está dentro, no cruza (está en el borde)
       if (pointInClass(x1, y1, cls) || pointInClass(x2, y2, cls)) {
         // Verificar si está en el borde (OK) o dentro (problema)
-        const onBorder1 = 
-          (Math.abs(x1 - clsLeft) < 2 || Math.abs(x1 - clsRight) < 2) ||
-          (Math.abs(y1 - clsTop) < 2 || Math.abs(y1 - clsBottom) < 2);
-        const onBorder2 = 
-          (Math.abs(x2 - clsLeft) < 2 || Math.abs(x2 - clsRight) < 2) ||
-          (Math.abs(y2 - clsTop) < 2 || Math.abs(y2 - clsBottom) < 2);
-        
+        const onBorder1 =
+          Math.abs(x1 - clsLeft) < 2 ||
+          Math.abs(x1 - clsRight) < 2 ||
+          Math.abs(y1 - clsTop) < 2 ||
+          Math.abs(y1 - clsBottom) < 2;
+        const onBorder2 =
+          Math.abs(x2 - clsLeft) < 2 ||
+          Math.abs(x2 - clsRight) < 2 ||
+          Math.abs(y2 - clsTop) < 2 ||
+          Math.abs(y2 - clsBottom) < 2;
+
         if (!onBorder1 || !onBorder2) {
           // Uno de los puntos está dentro, no en el borde
           return true;
         }
       }
-      
+
       // Verificar intersección del segmento con el interior del rectángulo
       const minX = Math.min(x1, x2);
       const maxX = Math.max(x1, x2);
       const minY = Math.min(y1, y2);
       const maxY = Math.max(y1, y2);
-      
+
       // Caja delimitadora rápida
-      if (maxX < clsLeft || minX > clsRight || maxY < clsTop || minY > clsBottom) {
+      if (
+        maxX < clsLeft ||
+        minX > clsRight ||
+        maxY < clsTop ||
+        minY > clsBottom
+      ) {
         return false;
       }
-      
+
       // Verificar intersección real con el interior (no bordes)
       const dx = x2 - x1;
       const dy = y2 - y1;
       if (dx === 0 && dy === 0) return false;
-      
+
       // Para cada borde, verificar si cruza el interior
       if (dx !== 0) {
         const tLeft = (clsLeft - x1) / dx;
@@ -477,7 +526,7 @@ const AssociationRelation = ({
           if (y > clsTop && y < clsBottom) return true;
         }
       }
-      
+
       if (dy !== 0) {
         const tTop = (clsTop - y1) / dy;
         const tBottom = (clsBottom - y1) / dy;
@@ -490,7 +539,7 @@ const AssociationRelation = ({
           if (x > clsLeft && x < clsRight) return true;
         }
       }
-      
+
       return false;
     };
 
@@ -498,46 +547,48 @@ const AssociationRelation = ({
     // Solo agregar un pequeño offset ortogonal si es necesario para routing
     const dx = endX - startX;
     const dy = endY - startY;
-    
+
     // Determinar en qué borde está cada punto
     const sourceLeft = sourceClass.x;
     const sourceRight = sourceClass.x + CLASS_WIDTH;
     const sourceTop = sourceClass.y;
     const sourceBottom = sourceClass.y + CLASS_HEIGHT;
-    
+
     const targetLeft = targetClass.x;
     const targetRight = targetClass.x + CLASS_WIDTH;
     const targetTop = targetClass.y;
     const targetBottom = targetClass.y + CLASS_HEIGHT;
-    
+
     // Detectar en qué borde está cada punto
     const startOnLeft = Math.abs(startX - sourceLeft) < 2;
     const startOnRight = Math.abs(startX - sourceRight) < 2;
     const startOnTop = Math.abs(startY - sourceTop) < 2;
     const startOnBottom = Math.abs(startY - sourceBottom) < 2;
-    
+
     const endOnLeft = Math.abs(endX - targetLeft) < 2;
     const endOnRight = Math.abs(endX - targetRight) < 2;
     const endOnTop = Math.abs(endY - targetTop) < 2;
     const endOnBottom = Math.abs(endY - targetBottom) < 2;
-    
+
     // Verificar si hay obstáculos en el camino directo
-    const needsReroute = obstacles.length > 0 && obstacles.some(obs => 
-      lineCrossesClass(startX, startY, endX, endY, obs)
-    );
+    const needsReroute =
+      obstacles.length > 0 &&
+      obstacles.some((obs) =>
+        lineCrossesClass(startX, startY, endX, endY, obs)
+      );
 
     // Si no hay obstáculos y la línea es relativamente directa, usar línea recta
     if (!needsReroute && (Math.abs(dx) < 50 || Math.abs(dy) < 50)) {
       return `M ${startX} ${startY} L ${endX} ${endY}`;
     }
-    
+
     // Si hay obstáculos o la línea es muy diagonal, usar routing ortogonal
     // Calcular puntos de routing ortogonal desde los bordes
     let routeStartX = startX;
     let routeStartY = startY;
     let routeEndX = endX;
     let routeEndY = endY;
-    
+
     // Mover el punto de inicio ligeramente fuera del borde
     if (startOnLeft) {
       routeStartX = startX - ROUTE_OFFSET;
@@ -548,7 +599,7 @@ const AssociationRelation = ({
     } else if (startOnBottom) {
       routeStartY = startY + ROUTE_OFFSET;
     }
-    
+
     // Mover el punto final ligeramente fuera del borde
     if (endOnLeft) {
       routeEndX = endX - ROUTE_OFFSET;
@@ -559,7 +610,7 @@ const AssociationRelation = ({
     } else if (endOnBottom) {
       routeEndY = endY + ROUTE_OFFSET;
     }
-    
+
     // Si es principalmente horizontal, routing horizontal-vertical-horizontal
     if (Math.abs(dx) > Math.abs(dy)) {
       const midY = (routeStartY + routeEndY) / 2;
@@ -584,14 +635,14 @@ const AssociationRelation = ({
   return (
     <svg
       style={{
-        position: 'absolute',
+        position: "absolute",
         left: 0,
         top: 0,
-        pointerEvents: 'none',
-        width: '100%',
-        height: '100%',
+        pointerEvents: "none",
+        width: "100%",
+        height: "100%",
         zIndex: 50,
-        overflow: 'visible',
+        overflow: "visible",
       }}
     >
       <defs>
@@ -605,10 +656,7 @@ const AssociationRelation = ({
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path
-            d="M0,0 L0,20 L18,10 z"
-            fill="#667eea"
-          />
+          <path d="M0,0 L0,20 L18,10 z" fill="#667eea" />
         </marker>
 
         {/* Marcador de Composición */}
@@ -621,10 +669,7 @@ const AssociationRelation = ({
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path
-            d="M0,10 L10,0 L20,10 L10,20 z"
-            fill="#2563EB"
-          />
+          <path d="M0,10 L10,0 L20,10 L10,20 z" fill="#2563EB" />
         </marker>
 
         {/* Marcador de Agregación */}
@@ -665,7 +710,7 @@ const AssociationRelation = ({
 
         {/* Filtro de sombra */}
         <filter id="shadowFilter" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.1"/>
+          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.1" />
         </filter>
       </defs>
 
@@ -682,7 +727,7 @@ const AssociationRelation = ({
           filter="url(#shadowFilter)"
           className="relation-path"
         />
-        
+
         {/* Nombre de la relación - posicionamiento mejorado */}
         {(() => {
           // Calcular posición óptima para la etiqueta
@@ -690,12 +735,12 @@ const AssociationRelation = ({
           const midY = (startY + endY) / 2;
           const dx = endX - startX;
           const dy = endY - startY;
-          
+
           // Offset para evitar solapamiento con la línea
           const labelOffset = 25;
           let labelX = midX;
           let labelY = midY;
-          
+
           // Si la línea es principalmente horizontal, desplazar verticalmente
           if (Math.abs(dx) > Math.abs(dy)) {
             labelY -= labelOffset * (dy > 0 ? 1 : -1);
@@ -703,7 +748,7 @@ const AssociationRelation = ({
             // Si es principalmente vertical, desplazar horizontalmente
             labelX += labelOffset * (dx > 0 ? -1 : 1);
           }
-          
+
           return (
             <g transform={`translate(${labelX}, ${labelY})`}>
               {/* Fondo semi-transparente para mejor legibilidad */}
@@ -712,12 +757,12 @@ const AssociationRelation = ({
                 y="-12"
                 width="100"
                 height="24"
-                fill="rgba(0, 0, 0, 0.6)"
+                fill="rgba(255, 255, 255, 0.9)"
                 rx="4"
+                stroke="#e2e8f0"
+                strokeWidth="1"
               />
-              <RelationText>
-                {relation.type}
-              </RelationText>
+              <RelationText>{relation.type}</RelationText>
             </g>
           );
         })()}
@@ -731,11 +776,11 @@ const AssociationRelation = ({
             height="80"
           >
             <RelationControls>
-              <ControlButton onClick={() => handleEditMultiplicidad('origen')}>
+              <ControlButton onClick={() => handleEditMultiplicidad("origen")}>
                 <Edit3 size={16} />
                 Origen ({relation.multiplicidadOrigen})
               </ControlButton>
-              <ControlButton onClick={() => handleEditMultiplicidad('destino')}>
+              <ControlButton onClick={() => handleEditMultiplicidad("destino")}>
                 <Edit3 size={16} />
                 Destino ({relation.multiplicidadDestino})
               </ControlButton>
@@ -753,12 +798,12 @@ const AssociationRelation = ({
           const CLASS_HEIGHT = 150;
           const LABEL_OFFSET = 25; // Offset desde el borde de la clase
           const LINE_OFFSET = 15; // Offset adicional perpendicular a la línea para evitar superposición
-          
+
           // Calcular dirección de la línea
           const lineDx = endX - startX;
           const lineDy = endY - startY;
           const lineLength = Math.sqrt(lineDx * lineDx + lineDy * lineDy);
-          
+
           // Vector perpendicular a la línea (normalizado) para desplazar cardinalidades
           let perpX = 0;
           let perpY = 0;
@@ -767,22 +812,22 @@ const AssociationRelation = ({
             perpX = -lineDy / lineLength;
             perpY = lineDx / lineLength;
           }
-          
+
           // Determinar en qué borde está el punto de salida (origen)
           const sourceLeft = sourceClass.x;
           const sourceRight = sourceClass.x + CLASS_WIDTH;
           const sourceTop = sourceClass.y;
           const sourceBottom = sourceClass.y + CLASS_HEIGHT;
-          
+
           const startOnLeft = Math.abs(startX - sourceLeft) < 2;
           const startOnRight = Math.abs(startX - sourceRight) < 2;
           const startOnTop = Math.abs(startY - sourceTop) < 2;
           const startOnBottom = Math.abs(startY - sourceBottom) < 2;
-          
+
           // Posicionar cardinalidad origen - FUERA del borde Y perpendicular a la línea
           let origenX = startX;
           let origenY = startY;
-          
+
           // Primero, posicionar respecto al borde de la clase
           if (startOnLeft) {
             origenX = sourceLeft - LABEL_OFFSET;
@@ -797,37 +842,37 @@ const AssociationRelation = ({
             origenX = startX;
             origenY = sourceBottom + LABEL_OFFSET;
           }
-          
+
           // Luego, desplazar perpendicularmente a la línea para evitar superposición
           // Determinar la mejor dirección (alejarse del centro de la línea)
           const midX = (startX + endX) / 2;
           const midY = (startY + endY) / 2;
           const distToMidX = origenX - midX;
           const distToMidY = origenY - midY;
-          
+
           // Usar el vector perpendicular que aleje del centro
           const dotProduct = distToMidX * perpX + distToMidY * perpY;
           const perpDirX = dotProduct > 0 ? perpX : -perpX;
           const perpDirY = dotProduct > 0 ? perpY : -perpY;
-          
+
           origenX += perpDirX * LINE_OFFSET;
           origenY += perpDirY * LINE_OFFSET;
-          
+
           // Determinar en qué borde está el punto final (destino)
           const targetLeft = targetClass.x;
           const targetRight = targetClass.x + CLASS_WIDTH;
           const targetTop = targetClass.y;
           const targetBottom = targetClass.y + CLASS_HEIGHT;
-          
+
           const endOnLeft = Math.abs(endX - targetLeft) < 2;
           const endOnRight = Math.abs(endX - targetRight) < 2;
           const endOnTop = Math.abs(endY - targetTop) < 2;
           const endOnBottom = Math.abs(endY - targetBottom) < 2;
-          
+
           // Posicionar cardinalidad destino - FUERA del borde Y perpendicular a la línea
           let destinoX = endX;
           let destinoY = endY;
-          
+
           // Primero, posicionar respecto al borde de la clase
           if (endOnLeft) {
             destinoX = targetLeft - LABEL_OFFSET;
@@ -842,29 +887,31 @@ const AssociationRelation = ({
             destinoX = endX;
             destinoY = targetBottom + LABEL_OFFSET;
           }
-          
+
           // Luego, desplazar perpendicularmente a la línea
           const distToMidX2 = destinoX - midX;
           const distToMidY2 = destinoY - midY;
           const dotProduct2 = distToMidX2 * perpX + distToMidY2 * perpY;
           const perpDirX2 = dotProduct2 > 0 ? perpX : -perpX;
           const perpDirY2 = dotProduct2 > 0 ? perpY : -perpY;
-          
+
           destinoX += perpDirX2 * LINE_OFFSET;
           destinoY += perpDirY2 * LINE_OFFSET;
-          
+
           return (
             <>
               {/* Cardinalidad origen */}
               <g transform={`translate(${origenX}, ${origenY})`}>
                 {/* Fondo para legibilidad */}
                 <rect
-                  x="-20"
+                  x="-15"
                   y="-10"
-                  width="40"
+                  width="30"
                   height="20"
-                  fill="rgba(0, 0, 0, 0.6)"
+                  fill="rgba(255, 255, 255, 0.9)"
                   rx="4"
+                  stroke="#e2e8f0"
+                  strokeWidth="1"
                 />
                 {editModeOrigen ? (
                   <RelationInput width="50" height="24">
@@ -872,7 +919,9 @@ const AssociationRelation = ({
                       value={tempOrigen}
                       onChange={(e) => setTempOrigen(e.target.value)}
                       onBlur={handleSaveOrigen}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSaveOrigen()}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && handleSaveOrigen()
+                      }
                       autoFocus
                     />
                   </RelationInput>
@@ -887,12 +936,14 @@ const AssociationRelation = ({
               <g transform={`translate(${destinoX}, ${destinoY})`}>
                 {/* Fondo para legibilidad */}
                 <rect
-                  x="-20"
+                  x="-15"
                   y="-10"
-                  width="40"
+                  width="30"
                   height="20"
-                  fill="rgba(0, 0, 0, 0.6)"
+                  fill="rgba(255, 255, 255, 0.9)"
                   rx="4"
+                  stroke="#e2e8f0"
+                  strokeWidth="1"
                 />
                 {editModeDestino ? (
                   <RelationInput width="50" height="24">
@@ -900,7 +951,9 @@ const AssociationRelation = ({
                       value={tempDestino}
                       onChange={(e) => setTempDestino(e.target.value)}
                       onBlur={handleSaveDestino}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSaveDestino()}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && handleSaveDestino()
+                      }
                       autoFocus
                     />
                   </RelationInput>

@@ -1,11 +1,11 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 export const EditorContainer = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg,rgb(9, 9, 9) 0%,rgb(23, 23, 24) 100%);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
 `;
 
@@ -14,10 +14,10 @@ export const Header = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 8px 20px;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   z-index: 100;
   overflow: visible;
   min-height: 40px; /* Reducido para dar más espacio al canvas */
@@ -35,9 +35,9 @@ export const ToolbarContainer = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 6px 20px;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   z-index: 99;
   gap: 8px;
   flex-wrap: wrap;
@@ -60,7 +60,7 @@ export const ToolbarGroup = styled.div`
 `;
 
 export const Button = styled.button.withConfig({
-  shouldForwardProp: (prop) => !['variant'].includes(prop),
+  shouldForwardProp: (prop) => !["variant"].includes(prop),
 })`
   padding: 8px 16px;
   border: none;
@@ -71,8 +71,10 @@ export const Button = styled.button.withConfig({
   display: flex;
   align-items: center;
   gap: 6px;
-  
-  ${props => props.$variant === 'primary' && `
+
+  ${(props) =>
+    props.$variant === "primary" &&
+    `
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     
@@ -81,8 +83,10 @@ export const Button = styled.button.withConfig({
       box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
     }
   `}
-  
-  ${props => props.$variant === 'secondary' && `
+
+  ${(props) =>
+    props.$variant === "secondary" &&
+    `
     background: rgba(255, 255, 255, 0.9);
     color: #4a5568;
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -93,7 +97,9 @@ export const Button = styled.button.withConfig({
     }
   `}
 
-  ${props => props.$variant === 'danger' && `
+  ${(props) =>
+    props.$variant === "danger" &&
+    `
     background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
     color: white;
     
@@ -103,7 +109,9 @@ export const Button = styled.button.withConfig({
     }
   `}
 
-  ${props => props.$variant === 'success' && `
+  ${(props) =>
+    props.$variant === "success" &&
+    `
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
     
@@ -113,7 +121,9 @@ export const Button = styled.button.withConfig({
     }
   `}
 
-  ${props => props.$variant === 'warning' && `
+  ${(props) =>
+    props.$variant === "warning" &&
+    `
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: white;
     
@@ -134,21 +144,22 @@ export const DiagramWrapper = styled.div`
 export const CanvasContainer = styled.div`
   position: relative;
   flex: 1;
-  overflow: hidden;          /* CLAVE: corta lo que se sale */
+  overflow: hidden; /* CLAVE: corta lo que se sale */
   overscroll-behavior: none; /* no propaga el scroll al body */
-  touch-action: none;        /* evita gestos por defecto */
-  cursor: ${props => props.$isCreatingRelation ? 'crosshair' : 'default'};
-  /* Fondo uniforme oscuro con grid extendido */
-  background: #0f1117;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  touch-action: none; /* evita gestos por defecto */
+  cursor: ${(props) => (props.$isCreatingRelation ? "crosshair" : "default")};
+  /* Fondo uniforme claro con grid extendido */
+  background: #ffffff;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 200px 200px, 200px 200px, 50px 50px, 50px 50px;
   background-position: 0 0, 0 0, 0 0, 0 0;
   min-height: 85vh; /* Ampliado para ocupar más espacio hacia abajo */
-  height: calc(100vh - 100px); /* Altura fija para ocupar casi toda la pantalla */
+  height: calc(
+    100vh - 100px
+  ); /* Altura fija para ocupar casi toda la pantalla */
 `;
 
 export const ZoomableCanvas = styled.div`
@@ -342,7 +353,7 @@ export const CollaborationPanel = styled.div`
       border-radius: 8px;
       padding: 12px;
       margin-bottom: 12px;
-      font-family: 'Courier New', monospace;
+      font-family: "Courier New", monospace;
       font-size: 0.9rem;
       color: #495057;
       word-break: break-all;
