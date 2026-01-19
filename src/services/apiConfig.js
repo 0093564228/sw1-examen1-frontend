@@ -7,7 +7,7 @@ const API_CONFIG = {
  /*  BASE_URL: "http://3.80.105.200:3001",
   WS_URL: "ws://3.80.105.200:3001", */
   BASE_URL: "https://veranitoapi.duckdns.org",
-  WS_URL: "ws://veranitoapi.duckdns.org",
+  WS_URL: "wss://veranitoapi.duckdns.org",
 
   // Función helper para construir URLs completas
   getUrl: (endpoint) => `${API_CONFIG.BASE_URL}${endpoint}`,
