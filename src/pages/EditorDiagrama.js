@@ -1345,7 +1345,7 @@ const EditorDiagrama = () => {
         // Descargar automáticamente el ZIP
         const link = document.createElement("a");
         link.href = zipUrl;
-        link.download = `${titulo || "diagrama"}-springboot-project.zip`;
+        link.download = `${titulo || "diagrama"}_springboot_project.zip`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1366,7 +1366,7 @@ const EditorDiagrama = () => {
             // Descargar automáticamente el ZIP
             const link = document.createElement("a");
             link.href = result.zipUrl;
-            link.download = `${titulo || "diagrama"}-springboot-project.zip`;
+            link.download = `${titulo || "diagrama"}_springboot_project.zip`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1480,7 +1480,7 @@ const EditorDiagrama = () => {
         // Descargar automáticamente el ZIP
         const link = document.createElement("a");
         link.href = zipUrl;
-        link.download = `${titulo || "diagrama"}-flutter-project.zip`;
+        link.download = `${titulo || "diagrama"}_flutter_project.zip`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1499,7 +1499,7 @@ const EditorDiagrama = () => {
             // Descargar automáticamente el ZIP
             const link = document.createElement("a");
             link.href = result.zipUrl;
-            link.download = `${titulo || "diagrama"}-flutter-project.zip`;
+            link.download = `${titulo || "diagrama"}_flutter_project.zip`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -3136,11 +3136,11 @@ const EditorDiagrama = () => {
             <Code size={16} />
             Exportar Backend
           </Button>
-          {/* <Button $variant="success" id="exportar-flutter" onClick={generateFlutterProject}>
+          <Button $variant="success" id="exportar-flutter" onClick={generateFlutterProject}>
             <FileDown size={16} />
             Exportar Flutter
-          </Button> */}
-          {/* <Button
+          </Button>
+          <Button
             $variant="primary"
             id="exportar-fullstack"
             onClick={generateFullStackProject}
@@ -3151,7 +3151,7 @@ const EditorDiagrama = () => {
           >
             <Code size={16} />
             Exportar Full-Stack
-          </Button> */}
+          </Button>
           <Button $variant="secondary" id="exportar-xmi" onClick={exportarXMI}>
             <FileDown size={16} />
             Exportar XMI
